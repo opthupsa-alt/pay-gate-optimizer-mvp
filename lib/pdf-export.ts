@@ -36,8 +36,34 @@ export function generatePDFContent(options: PDFExportOptions): string {
     .header {
       text-align: center;
       margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 3px solid #2563eb;
+      padding-bottom: 24px;
+      border-bottom: 3px solid #10b981;
+    }
+    
+    .header-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .header-logo svg {
+      width: 56px;
+      height: 56px;
+    }
+    
+    .header-brand {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    
+    .header-brand .pay {
+      color: #1f2937;
+    }
+    
+    .header-brand .optimizer {
+      color: #10b981;
     }
     
     .header h1 {
@@ -503,8 +529,31 @@ export function generatePDFContent(options: PDFExportOptions): string {
     </head>
     <body>
       <div class="header">
-        <h1>PayGate Optimizer</h1>
-        <p>${t.reportTitle}</p>
+        <div class="header-logo">
+          <svg viewBox="0 0 512 512" width="56" height="56">
+            <defs>
+              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+            </defs>
+            <rect x="16" y="16" width="480" height="480" rx="96" fill="url(#logoGrad)"/>
+            <rect x="48" y="48" width="416" height="416" rx="80" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+            <path d="M168 400 L168 112 L312 112 Q376 112 408 152 Q440 192 440 256 Q440 320 408 360 Q376 400 312 400 L168 400 Z M224 344 L296 344 Q340 344 362 316 Q384 288 384 256 Q384 224 362 196 Q340 168 296 168 L224 168 Z" fill="white"/>
+            <g transform="translate(350, 70)">
+              <rect width="90" height="56" rx="10" fill="rgba(255,255,255,0.25)"/>
+              <rect x="12" y="16" width="35" height="6" rx="3" fill="rgba(255,255,255,0.6)"/>
+              <rect x="12" y="28" width="22" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
+              <circle cx="68" cy="28" r="14" fill="rgba(255,255,255,0.4)"/>
+              <circle cx="55" cy="28" r="14" fill="rgba(255,255,255,0.3)"/>
+            </g>
+          </svg>
+          <span class="header-brand">
+            <span class="pay">PayGate</span>
+            <span class="optimizer"> Optimizer</span>
+          </span>
+        </div>
+        <p style="font-size: 18px; color: #374151; margin-bottom: 8px;">${t.reportTitle}</p>
         <p style="font-size: 12px; color: #9ca3af; margin-top: 8px;">
           ${t.generatedAt}: ${new Date().toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US", {
             year: 'numeric',
@@ -522,7 +571,20 @@ export function generatePDFContent(options: PDFExportOptions): string {
       ${recommendationsHTML}
       
       <div class="footer">
-        <p>PayGate Optimizer - ${t.poweredBy}</p>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+          <svg viewBox="0 0 512 512" width="24" height="24">
+            <defs>
+              <linearGradient id="footerLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+            </defs>
+            <rect x="16" y="16" width="480" height="480" rx="96" fill="url(#footerLogoGrad)"/>
+            <path d="M168 400 L168 112 L312 112 Q376 112 408 152 Q440 192 440 256 Q440 320 408 360 Q376 400 312 400 L168 400 Z M224 344 L296 344 Q340 344 362 316 Q384 288 384 256 Q384 224 362 196 Q340 168 296 168 L224 168 Z" fill="white"/>
+          </svg>
+          <span style="font-weight: 600;">PayGate <span style="color: #10b981;">Optimizer</span></span>
+        </div>
+        <p style="font-size: 11px; color: #6b7280;">${t.poweredBy}</p>
         <div class="disclaimer">
           ${t.disclaimer}
         </div>

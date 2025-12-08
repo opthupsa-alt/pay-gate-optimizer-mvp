@@ -1,4 +1,4 @@
-import { CreditCard } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
@@ -42,13 +42,7 @@ export function Footer({ locale }: FooterProps) {
         <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand Section */}
           <div className="space-y-3 sm:space-y-4">
-            <div className={cn(
-              "flex items-center gap-2 font-semibold text-sm sm:text-base",
-              isRTL && "font-arabic"
-            )}>
-              <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
-              <span>{t.brand}</span>
-            </div>
+            <Logo size="md" showText={true} />
             <p className={cn(
               "text-xs sm:text-sm text-muted-foreground leading-relaxed",
               isRTL && "font-arabic"

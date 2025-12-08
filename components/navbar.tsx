@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
+import { Logo } from "@/components/ui/logo"
 import { Menu, X, User, LogOut } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
@@ -79,8 +80,7 @@ export function Navbar({ locale }: NavbarProps) {
     <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold">
-          <span className="text-xl">💳</span>
-          <span className="hidden sm:inline">PayGate Optimizer</span>
+          <Logo size="sm" showText={true} />
         </Link>
 
         {/* Desktop Navigation */}
