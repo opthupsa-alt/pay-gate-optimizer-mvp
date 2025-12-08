@@ -38,6 +38,7 @@ import {
 import Link from "next/link"
 import { toast } from "sonner"
 import { generatePDFContent as generatePremiumPDF } from "@/lib/pdf-export"
+import { SARSymbol } from "@/components/ui/sar-symbol"
 
 interface BreakdownItem {
   payment_method?: string
@@ -514,8 +515,9 @@ export default function ResultsPage() {
                 </div>
                 <div className={`${isRTL ? "text-start sm:text-end" : "text-start sm:text-end"}`}>
                   <p className="text-xs sm:text-sm text-muted-foreground">{t.monthlyCost}</p>
-                  <p className="text-lg sm:text-xl md:text-2xl font-bold text-primary">
-                    {formatCurrency(rec.expected_cost_min)} - {formatCurrency(rec.expected_cost_max)} {t.sar}
+                  <p className="text-lg sm:text-xl md:text-2xl font-bold text-primary inline-flex items-center gap-1">
+                    {formatCurrency(rec.expected_cost_min)} - {formatCurrency(rec.expected_cost_max)}
+                    <SARSymbol size="xl" />
                   </p>
                 </div>
               </div>
@@ -621,7 +623,9 @@ export default function ResultsPage() {
                                   {locale === "ar" ? "رسوم شهرية ثابتة" : "Monthly Fixed Fee"}
                                 </td>
                                 <td className="py-2 text-end font-medium tabular-nums">
-                                  {formatCurrency(feeAmount)} {t.sar}
+                                  <span className="inline-flex items-center gap-0.5">
+                                    {formatCurrency(feeAmount)} <SARSymbol size="xs" />
+                                  </span>
                                 </td>
                               </tr>
                             )
@@ -636,10 +640,14 @@ export default function ResultsPage() {
                                 {txCount.toLocaleString()}
                               </td>
                               <td className="py-2 text-end tabular-nums">
-                                {formatCurrency(volume)} {t.sar}
+                                <span className="inline-flex items-center gap-0.5">
+                                  {formatCurrency(volume)} <SARSymbol size="xs" />
+                                </span>
                               </td>
                               <td className="py-2 text-end font-medium tabular-nums">
-                                {formatCurrency(feeAmount)} {t.sar}
+                                <span className="inline-flex items-center gap-0.5">
+                                  {formatCurrency(feeAmount)} <SARSymbol size="xs" />
+                                </span>
                               </td>
                             </tr>
                           )
