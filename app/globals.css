@@ -178,6 +178,98 @@
   .font-sans {
     font-family: var(--font-sans);
   }
+  
+  /* ═══════════════════════════════════════════════════════════════════════════
+     Global RTL Fixes for Form Elements
+     ═══════════════════════════════════════════════════════════════════════════ */
+  
+  /* Hide number input spinners globally - with !important for max specificity */
+  input[type="number"],
+  input[type="number"]:focus,
+  input[type="number"]:hover {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+  }
+  
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    margin: 0 !important;
+    display: none !important;
+  }
+  
+  /* RTL-aware input with icon - ensure proper padding */
+  [dir="rtl"] input[dir="ltr"] {
+    text-align: left;
+  }
+  
+  /* Switch RTL fix - Container h-6 w-11 (44px), Thumb size-5 (20px) */
+  /* In RTL: unchecked = right side, checked = left side */
+  /* Movement: 44px - 20px - 4px = 20px (translate-x-5) */
+  [dir="rtl"] [data-slot="switch-thumb"][data-state="checked"] {
+    transform: translateX(-20px) !important;
+  }
+  
+  [dir="rtl"] [data-slot="switch-thumb"][data-state="unchecked"] {
+    transform: translateX(-2px) !important;
+  }
+  
+  /* Select trigger RTL - chevron position */
+  [dir="rtl"] [data-slot="select-trigger"] {
+    flex-direction: row-reverse;
+  }
+  
+  /* Checkbox RTL alignment */
+  [dir="rtl"] [data-slot="checkbox"] {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     Dropdown/Context Menu RTL Fixes
+     ═══════════════════════════════════════════════════════════════════════════ */
+  
+  /* Menu items with checkboxes/radios - flip indicator position */
+  [dir="rtl"] [role="menuitemcheckbox"] > span:first-child,
+  [dir="rtl"] [role="menuitemradio"] > span:first-child {
+    left: auto;
+    right: 0.5rem;
+  }
+  
+  /* Menu items with inset - flip padding */
+  [dir="rtl"] [data-inset] {
+    padding-left: 0.5rem;
+    padding-right: 2rem;
+  }
+  
+  /* Toast RTL - position on left side instead of right */
+  [dir="rtl"] [data-slot="toaster"] {
+    left: 0;
+    right: auto;
+  }
+  
+  [dir="rtl"] [data-slot="toast"] {
+    flex-direction: row-reverse;
+  }
+  
+  /* Sheet close button RTL */
+  [dir="rtl"] [data-slot="sheet-close"] {
+    left: 1rem;
+    right: auto;
+  }
+  
+  /* Table text alignment */
+  [dir="rtl"] th {
+    text-align: right;
+  }
+  
+  /* Dialog/Alert close button */
+  [dir="rtl"] [data-slot="dialog-close"],
+  [dir="rtl"] [data-slot="alert-dialog-close"] {
+    left: 1rem;
+    right: auto;
+  }
 }
 
 /* RTL-aware spacing utilities */
