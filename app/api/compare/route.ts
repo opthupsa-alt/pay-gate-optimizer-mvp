@@ -217,7 +217,8 @@ export async function POST(request: NextRequest) {
 
 async function hashIP(ip: string): Promise<string> {
   const encoder = new TextEncoder()
-  const secret = process.env.NEXTAUTH_SECRET || "paygate-secret"
+  const secret = process.env.NEXTAUTH_SECRET
+  if (!secret) throw new Error("NEXTAUTH_SECRET is required")
   const data = encoder.encode(ip + secret)
   const hashBuffer = await crypto.subtle.digest("SHA-256", data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
@@ -268,7 +269,7 @@ function calculateProviderRecommendations(
     const sectorRule = provider.providerSectorRules?.find(
       (r: any) => r.sector?.code === formData.sector_id
     )
-    if (sectorRule && !sectorRule.isAllowed) {
+    if (sectorRule && !sectorRule.isSupported) {
       continue
     }
 
@@ -375,12 +376,12 @@ function calculateFitScore(provider: any, formData: WizardFormData): number {
   if (needs.tokenization && capabilities.includes("tokenization")) score += 5
   if (needs.multi_currency && capabilities.includes("multi_currency")) score += 5
   const sectorRule = provider.providerSectorRules?.find((r: any) => r.sector?.code === formData.sector_id)
-  if (sectorRule?.isPreferred) score += 10
+  if (sectorRule?.isSupported) score += 5
   return Math.min(score, 100)
 }
 
 function calculateOpsScore(provider: any): number {
-  const metrics = provider.opsMetrics?.[0]
+  const metrics = provider.opsMetrics
   if (!metrics) return 70
   return ((metrics.onboardingScore || 70) + (metrics.supportScore || 70) + (metrics.docsScore || 70)) / 3
 }
@@ -398,8 +399,8 @@ function generateReasons(provider: any, formData: WizardFormData, locale: string
   if (supportedMethods.includes("mada")) reasons.push(isAr ? "يدعم مدى" : "Supports Mada")
   if (supportedMethods.includes("apple_pay")) reasons.push(isAr ? "يدعم Apple Pay" : "Supports Apple Pay")
   const sectorRule = provider.providerSectorRules?.find((r: any) => r.sector?.code === formData.sector_id)
-  if (sectorRule?.isPreferred) reasons.push(isAr ? "متخصص في قطاعك" : "Specialized in your sector")
-  const metrics = provider.opsMetrics?.[0]
+  if (sectorRule?.isSupported) reasons.push(isAr ? "يدعم قطاعك" : "Supports your sector")
+  const metrics = provider.opsMetrics
   if (metrics?.onboardingScore >= 80) reasons.push(isAr ? "تفعيل سريع" : "Fast activation")
   if (metrics?.supportScore >= 80) reasons.push(isAr ? "دعم فني ممتاز" : "Excellent support")
   return reasons.slice(0, 4)

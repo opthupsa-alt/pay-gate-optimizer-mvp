@@ -158,7 +158,8 @@ export async function POST(request: NextRequest) {
 
 async function hashIP(ip: string): Promise<string> {
   const encoder = new TextEncoder()
-  const secret = process.env.NEXTAUTH_SECRET || "paygate-secret"
+  const secret = process.env.NEXTAUTH_SECRET
+  if (!secret) throw new Error("NEXTAUTH_SECRET is required")
   const data = encoder.encode(ip + secret)
   const hashBuffer = await crypto.subtle.digest("SHA-256", data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
@@ -206,11 +207,11 @@ function calculateProviderRecommendations(
 
   for (const provider of providers) {
     // Check sector compatibility
-    const sectorRule = provider.sectorRules?.find(
+    const sectorRule = provider.providerSectorRules?.find(
       (r: any) => r.sector?.code === formData.sector_id
     )
-    if (sectorRule && !sectorRule.isAllowed) {
-      continue // Skip disallowed sectors
+    if (sectorRule && !sectorRule.isSupported) {
+      continue // Skip unsupported sectors
     }
 
     // Calculate pricing
@@ -375,19 +376,19 @@ function calculateFitScore(provider: any, formData: WizardFormData): number {
     }
   }
 
-  // Sector preference bonus
+  // Sector support bonus (provider supports this sector)
   const sectorRule = provider.providerSectorRules?.find(
     (r: any) => r.sector?.code === formData.sector_id
   )
-  if (sectorRule?.isPreferred) {
-    score += 10
+  if (sectorRule?.isSupported) {
+    score += 5
   }
 
   return Math.min(score, 100)
 }
 
 function calculateOpsScore(provider: any): number {
-  const metrics = provider.opsMetrics?.[0]
+  const metrics = provider.opsMetrics
   if (!metrics) return 70
 
   const onboarding = metrics.onboardingScore || 70
@@ -432,11 +433,11 @@ function generateReasons(
   const sectorRule = provider.providerSectorRules?.find(
     (r: any) => r.sector?.code === formData.sector_id
   )
-  if (sectorRule?.isPreferred) {
-    reasons.push(isAr ? "متخصص في قطاعك" : "Specialized in your sector")
+  if (sectorRule?.isSupported) {
+    reasons.push(isAr ? "يدعم قطاعك" : "Supports your sector")
   }
 
-  const metrics = provider.opsMetrics?.[0]
+  const metrics = provider.opsMetrics
   if (metrics?.onboardingScore && metrics.onboardingScore >= 80) {
     reasons.push(isAr ? "تفعيل سريع" : "Fast activation")
   }

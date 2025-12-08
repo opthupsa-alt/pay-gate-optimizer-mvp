@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#334155;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="1100" cy="100" r="300" fill="url(#accentGradient)" opacity="0.1"/>
+  <circle cx="100" cy="530" r="200" fill="url(#accentGradient)" opacity="0.08"/>
+  
+  <!-- Left side - Logo and branding -->
+  <g transform="translate(80, 180)">
+    <!-- Logo icon -->
+    <rect width="120" height="120" rx="28" fill="url(#accentGradient)"/>
+    <path d="M32 96 L32 24 L72 24 Q92 24 102 36 Q112 48 112 64 Q112 80 102 92 Q92 104 72 104 L32 104 Z M48 88 L68 88 Q80 88 86 80 Q92 72 92 64 Q92 56 86 48 Q80 40 68 40 L48 40 Z" fill="white"/>
+    <!-- Small card decoration -->
+    <rect x="80" y="12" width="32" height="20" rx="4" fill="rgba(255,255,255,0.3)"/>
+    
+    <!-- Brand name -->
+    <text x="140" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="42" font-weight="700" fill="white">PayGate</text>
+    <text x="140" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="42" font-weight="700" fill="url(#accentGradient)">Optimizer</text>
+  </g>
+  
+  <!-- Main headline -->
+  <text x="80" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="700" fill="white">قارن بوابات الدفع السعودية</text>
+  <text x="80" y="445" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="700" fill="white">واختر الأنسب لعملك</text>
+  
+  <!-- Subtitle -->
+  <text x="80" y="510" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#94a3b8">مدى • Visa/Mastercard • Apple Pay • STC Pay</text>
+  
+  <!-- Right side - Payment cards illustration -->
+  <g transform="translate(780, 150)">
+    <!-- Card 1 - Mada -->
+    <g transform="rotate(-8)">
+      <rect width="280" height="170" rx="16" fill="url(#cardGradient)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <rect x="24" y="100" width="80" height="12" rx="4" fill="rgba(255,255,255,0.2)"/>
+      <rect x="24" y="120" width="50" height="8" rx="3" fill="rgba(255,255,255,0.1)"/>
+      <circle cx="240" cy="50" r="30" fill="#10b981" opacity="0.8"/>
+      <text x="226" y="58" font-family="system-ui" font-size="20" font-weight="700" fill="white">مدى</text>
+    </g>
+    
+    <!-- Card 2 - Visa -->
+    <g transform="translate(40, 80) rotate(5)">
+      <rect width="280" height="170" rx="16" fill="#1e40af" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <rect x="24" y="100" width="80" height="12" rx="4" fill="rgba(255,255,255,0.3)"/>
+      <rect x="24" y="120" width="50" height="8" rx="3" fill="rgba(255,255,255,0.2)"/>
+      <text x="180" y="60" font-family="system-ui" font-size="32" font-weight="700" fill="white" font-style="italic">VISA</text>
+    </g>
+    
+    <!-- Card 3 - Apple Pay -->
+    <g transform="translate(20, 180) rotate(-3)">
+      <rect width="280" height="170" rx="16" fill="#000" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <rect x="24" y="100" width="80" height="12" rx="4" fill="rgba(255,255,255,0.2)"/>
+      <text x="160" y="60" font-family="system-ui" font-size="28" font-weight="500" fill="white"> Pay</text>
+    </g>
+  </g>
+  
+  <!-- Bottom accent line -->
+  <rect x="0" y="610" width="1200" height="20" fill="url(#accentGradient)"/>
+</svg>

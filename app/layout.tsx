@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.svg',
         width: 1200,
         height: 630,
         alt: 'PayGate Optimizer - مقارنة بوابات الدفع',
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'PayGate Optimizer - مقارنة بوابات الدفع',
     description: 'قارن أسعار ومميزات بوابات الدفع في السعودية',
-    images: ['/og-image.png'],
+    images: ['/og-image.svg'],
   },
   robots: {
     index: true,
@@ -100,19 +100,11 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
         url: '/icon.svg',
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/icon.svg',
   },
   manifest: '/manifest.json',
 }
