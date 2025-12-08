@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { signOut } from "next-auth/react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,18 +11,24 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { User, Mail, Shield, Calendar, Save, Loader2, LogOut } from "lucide-react"
 import { toast } from "sonner"
-import type { Profile } from "@/lib/types"
-import type { User as AuthUser } from "@supabase/supabase-js"
+
+interface ProfileUser {
+  id: string
+  name: string | null
+  email: string
+  role: string
+  createdAt: Date
+  emailVerified: Date | null
+}
 
 interface ProfileFormProps {
-  user: AuthUser
-  profile: Profile | null
+  user: ProfileUser
   locale: "ar" | "en"
 }
 
-export function ProfileForm({ user, profile, locale }: ProfileFormProps) {
+export function ProfileForm({ user, locale }: ProfileFormProps) {
   const router = useRouter()
-  const [name, setName] = useState(profile?.name || "")
+  const [name, setName] = useState(user.name || "")
   const [isLoading, setIsLoading] = useState(false)
 
   const t = {
@@ -79,13 +85,13 @@ export function ProfileForm({ user, profile, locale }: ProfileFormProps) {
     setIsLoading(true)
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('profiles')
-        .update({ name, updated_at: new Date().toISOString() })
-        .eq('id', user.id)
+      const response = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      })
 
-      if (error) throw error
+      if (!response.ok) throw new Error('Failed to update profile')
 
       toast.success(t.successMessage)
       router.refresh()
@@ -97,10 +103,7 @@ export function ProfileForm({ user, profile, locale }: ProfileFormProps) {
   }
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/")
-    router.refresh()
+    await signOut({ callbackUrl: '/' })
   }
 
   const formatDate = (dateString: string) => {
@@ -111,7 +114,7 @@ export function ProfileForm({ user, profile, locale }: ProfileFormProps) {
     })
   }
 
-  const roleKey = (profile?.role || 'merchant') as keyof typeof t.roles
+  const roleKey = (user.role || 'merchant') as keyof typeof t.roles
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -189,10 +192,10 @@ export function ProfileForm({ user, profile, locale }: ProfileFormProps) {
               <span className="text-sm">{t.memberSince}</span>
             </div>
             <span className="text-sm text-muted-foreground">
-              {profile?.created_at ? formatDate(profile.created_at) : "-"}
+              {user.createdAt ? formatDate(user.createdAt.toString()) : "-"}
             </span>
           </div>
-          {user.email_confirmed_at && (
+          {user.emailVerified && (
             <>
               <Separator />
               <div className="flex items-center justify-between">

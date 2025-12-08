@@ -276,7 +276,7 @@ function calculateProviderPricing(
     const methodTxCount = Math.round((txCount * percentage) / 100)
 
     // Find fee for this payment method
-    const fee = provider.fees?.find(
+    const fee = provider.providerFees?.find(
       (f: any) => f.paymentMethod?.code === methodCode
     )
 
@@ -347,7 +347,7 @@ function calculateFitScore(provider: any, formData: WizardFormData): number {
   let score = 70 // Base score
 
   // Check payment method support
-  const supportedMethods = provider.paymentMethods?.map(
+  const supportedMethods = provider.providerPaymentMethods?.map(
     (pm: any) => pm.paymentMethod?.code
   ) || []
 
@@ -358,7 +358,7 @@ function calculateFitScore(provider: any, formData: WizardFormData): number {
   }
 
   // Check capabilities match with needs
-  const capabilities = provider.capabilities?.map(
+  const capabilities = provider.providerCapabilities?.map(
     (c: any) => c.capability?.code
   ) || []
 
@@ -376,7 +376,7 @@ function calculateFitScore(provider: any, formData: WizardFormData): number {
   }
 
   // Sector preference bonus
-  const sectorRule = provider.sectorRules?.find(
+  const sectorRule = provider.providerSectorRules?.find(
     (r: any) => r.sector?.code === formData.sector_id
   )
   if (sectorRule?.isPreferred) {
@@ -402,7 +402,7 @@ function calculateRiskScore(provider: any): number {
 }
 
 function calculateRatingScore(provider: any): number {
-  const review = provider.reviews?.[0]
+  const review = provider.providerReviews?.[0]
   if (!review) return 70
 
   const rating = Number(review.ratingAvg) || 3.5
@@ -417,7 +417,7 @@ function generateReasons(
   const reasons: string[] = []
   const isAr = locale === "ar"
 
-  const supportedMethods = provider.paymentMethods?.map(
+  const supportedMethods = provider.providerPaymentMethods?.map(
     (pm: any) => pm.paymentMethod?.code
   ) || []
 
@@ -429,7 +429,7 @@ function generateReasons(
     reasons.push(isAr ? "يدعم Apple Pay" : "Supports Apple Pay")
   }
 
-  const sectorRule = provider.sectorRules?.find(
+  const sectorRule = provider.providerSectorRules?.find(
     (r: any) => r.sector?.code === formData.sector_id
   )
   if (sectorRule?.isPreferred) {

@@ -265,7 +265,7 @@ function calculateProviderRecommendations(
 
   for (const provider of providers) {
     // Check sector compatibility
-    const sectorRule = provider.sectorRules?.find(
+    const sectorRule = provider.providerSectorRules?.find(
       (r: any) => r.sector?.code === formData.sector_id
     )
     if (sectorRule && !sectorRule.isAllowed) {
@@ -328,7 +328,7 @@ function calculateProviderPricing(provider: any, formData: WizardFormData) {
     const methodVolume = (monthlyVolume * percentage) / 100
     const methodTxCount = Math.round((txCount * percentage) / 100)
 
-    const fee = provider.fees?.find((f: any) => f.paymentMethod?.code === methodCode)
+    const fee = provider.providerFees?.find((f: any) => f.paymentMethod?.code === methodCode)
 
     if (fee) {
       const feePercent = Number(fee.feePercent) || 0
@@ -365,16 +365,16 @@ function calculateCostScore(cost: number, minCost: number, maxCost: number): num
 
 function calculateFitScore(provider: any, formData: WizardFormData): number {
   let score = 70
-  const supportedMethods = provider.paymentMethods?.map((pm: any) => pm.paymentMethod?.code) || []
+  const supportedMethods = provider.providerPaymentMethods?.map((pm: any) => pm.paymentMethod?.code) || []
   for (const [method, percentage] of Object.entries(formData.payment_mix)) {
     if (percentage > 0 && supportedMethods.includes(method)) score += 5
   }
-  const capabilities = provider.capabilities?.map((c: any) => c.capability?.code) || []
+  const capabilities = provider.providerCapabilities?.map((c: any) => c.capability?.code) || []
   const needs = formData.needs as any
   if (needs.recurring && capabilities.includes("recurring")) score += 5
   if (needs.tokenization && capabilities.includes("tokenization")) score += 5
   if (needs.multi_currency && capabilities.includes("multi_currency")) score += 5
-  const sectorRule = provider.sectorRules?.find((r: any) => r.sector?.code === formData.sector_id)
+  const sectorRule = provider.providerSectorRules?.find((r: any) => r.sector?.code === formData.sector_id)
   if (sectorRule?.isPreferred) score += 10
   return Math.min(score, 100)
 }
@@ -386,7 +386,7 @@ function calculateOpsScore(provider: any): number {
 }
 
 function calculateRatingScore(provider: any): number {
-  const review = provider.reviews?.[0]
+  const review = provider.providerReviews?.[0]
   if (!review) return 70
   return (Number(review.ratingAvg) || 3.5) / 5 * 100
 }
@@ -394,10 +394,10 @@ function calculateRatingScore(provider: any): number {
 function generateReasons(provider: any, formData: WizardFormData, locale: string): string[] {
   const reasons: string[] = []
   const isAr = locale === "ar"
-  const supportedMethods = provider.paymentMethods?.map((pm: any) => pm.paymentMethod?.code) || []
+  const supportedMethods = provider.providerPaymentMethods?.map((pm: any) => pm.paymentMethod?.code) || []
   if (supportedMethods.includes("mada")) reasons.push(isAr ? "يدعم مدى" : "Supports Mada")
   if (supportedMethods.includes("apple_pay")) reasons.push(isAr ? "يدعم Apple Pay" : "Supports Apple Pay")
-  const sectorRule = provider.sectorRules?.find((r: any) => r.sector?.code === formData.sector_id)
+  const sectorRule = provider.providerSectorRules?.find((r: any) => r.sector?.code === formData.sector_id)
   if (sectorRule?.isPreferred) reasons.push(isAr ? "متخصص في قطاعك" : "Specialized in your sector")
   const metrics = provider.opsMetrics?.[0]
   if (metrics?.onboardingScore >= 80) reasons.push(isAr ? "تفعيل سريع" : "Fast activation")
