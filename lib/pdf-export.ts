@@ -479,14 +479,32 @@ export function generatePDFContent(options: PDFExportOptions): string {
                 </tr>
               </thead>
               <tbody>
-                ${rec.breakdown.map(item => `
-                  <tr>
-                    <td>${getPaymentMethodName(item.payment_method, locale)}</td>
-                    <td>${item.tx_count.toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}</td>
-                    <td>${formatCurrency(item.volume, locale)} ${t.currency}</td>
-                    <td>${formatCurrency(item.fee_amount, locale)} ${t.currency}</td>
-                  </tr>
-                `).join('')}
+                ${rec.breakdown.map(item => {
+                  // Handle both new and legacy field names
+                  const paymentMethod = item.payment_method || (item as any).method || "unknown"
+                  const txCount = item.tx_count ?? (item as any).txCount ?? 0
+                  const volume = item.volume ?? 0
+                  const feeAmount = item.fee_amount ?? (item as any).cost ?? 0
+                  const isMonthlyFee = (item as any).isMonthlyFee || paymentMethod === "monthly_fee"
+                  
+                  if (isMonthlyFee) {
+                    return `
+                      <tr style="background: #f9fafb;">
+                        <td colspan="3" style="font-weight: 600;">${locale === "ar" ? "رسوم شهرية ثابتة" : "Monthly Fixed Fee"}</td>
+                        <td>${formatCurrency(feeAmount, locale)} ${t.currency}</td>
+                      </tr>
+                    `
+                  }
+                  
+                  return `
+                    <tr>
+                      <td>${getPaymentMethodName(paymentMethod, locale)}</td>
+                      <td>${txCount.toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}</td>
+                      <td>${formatCurrency(volume, locale)} ${t.currency}</td>
+                      <td>${formatCurrency(feeAmount, locale)} ${t.currency}</td>
+                    </tr>
+                  `
+                }).join('')}
               </tbody>
             </table>
           </div>

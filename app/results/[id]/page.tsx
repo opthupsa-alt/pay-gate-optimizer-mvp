@@ -37,6 +37,23 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { generatePDFContent as generatePremiumPDF } from "@/lib/pdf-export"
+
+interface BreakdownItem {
+  payment_method?: string
+  method?: string // Legacy field
+  tx_count?: number
+  txCount?: number // Legacy field
+  volume?: number
+  fee_amount?: number
+  cost?: number // Legacy field
+  fee_percent?: number
+  feePercent?: number // Legacy field
+  fee_fixed?: number
+  feeFixed?: number // Legacy field
+  isMonthlyFee?: boolean
+  isEstimate?: boolean
+}
 
 interface Recommendation {
   provider_id: string
@@ -44,12 +61,7 @@ interface Recommendation {
   provider_name_en?: string
   expected_cost_min: number
   expected_cost_max: number
-  breakdown: Array<{
-    payment_method: string
-    tx_count: number
-    volume: number
-    fee_amount: number
-  }>
+  breakdown: BreakdownItem[]
   score_total: number
   score_cost: number
   score_fit: number
@@ -101,10 +113,50 @@ export default function ResultsPage() {
 
   // Export to PDF function
   const handleExportPDF = async () => {
+    if (!data) return
+    
     setIsExporting(true)
     try {
-      // Generate PDF content
-      const content = generatePDFContent()
+      // Convert data format for PDF generator
+      const pdfRecommendations = data.recommendations.map(rec => ({
+        ...rec,
+        // Map field names for compatibility
+        breakdown: rec.breakdown.map(item => ({
+          payment_method: item.payment_method || item.method || "unknown",
+          tx_count: item.tx_count ?? item.txCount ?? 0,
+          volume: item.volume ?? 0,
+          fee_amount: item.fee_amount ?? item.cost ?? 0,
+          fee_percent: item.fee_percent ?? item.feePercent,
+          fee_fixed: item.fee_fixed ?? item.feeFixed,
+        }))
+      }))
+      
+      // Generate premium PDF content
+      const content = generatePremiumPDF({
+        locale,
+        recommendations: pdfRecommendations as any,
+        wizardData: data.wizardRun ? {
+          sector_id: "",
+          business_type: "company",
+          monthly_gmv: data.wizardRun.monthly_gmv,
+          tx_count: data.wizardRun.tx_count,
+          avg_ticket: data.wizardRun.avg_ticket,
+          payment_mix: { mada: 60, visa_mc: 25, apple_pay: 10, google_pay: 5, other: 0 },
+          refunds_rate: 2,
+          chargebacks_rate: 0.5,
+          needs: {
+            recurring: false,
+            tokenization: false,
+            multi_currency: false,
+            plugins_shopify: false,
+            plugins_woocommerce: false,
+            fast_settlement: false,
+            apple_pay: false,
+            google_pay: false,
+          },
+          locale,
+        } : undefined,
+      })
       
       // Create blob and download
       const blob = new Blob([content], { type: 'text/html;charset=utf-8' })
@@ -119,59 +171,12 @@ export default function ResultsPage() {
       }
       
       toast.success(locale === "ar" ? "تم فتح نافذة الطباعة" : "Print dialog opened")
-    } catch {
+    } catch (error) {
+      console.error("PDF export error:", error)
       toast.error(locale === "ar" ? "حدث خطأ أثناء التصدير" : "Error exporting")
     } finally {
       setIsExporting(false)
     }
-  }
-
-  // Generate PDF content
-  const generatePDFContent = () => {
-    if (!data) return ""
-    
-    const recommendations = data.recommendations.map((rec, index) => `
-      <div style="margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-        <h3 style="margin: 0 0 10px 0;">#${index + 1} ${locale === "ar" ? rec.provider_name_ar : rec.provider_name_en}</h3>
-        <p style="font-size: 18px; color: #2563eb; margin: 10px 0;">
-          ${formatCurrency(rec.expected_cost_min)} - ${formatCurrency(rec.expected_cost_max)} ${locale === "ar" ? "ر.س" : "SAR"}
-        </p>
-        <p><strong>${locale === "ar" ? "التقييم الإجمالي" : "Total Score"}:</strong> ${Math.round(rec.score_total)}/100</p>
-        <p><strong>${locale === "ar" ? "الأسباب" : "Reasons"}:</strong></p>
-        <ul>
-          ${rec.reasons.map(r => `<li>${r}</li>`).join("")}
-        </ul>
-      </div>
-    `).join("")
-
-    return `
-      <!DOCTYPE html>
-      <html dir="${isRTL ? 'rtl' : 'ltr'}">
-      <head>
-        <meta charset="UTF-8">
-        <title>PayGate Optimizer - ${locale === "ar" ? "تقرير المقارنة" : "Comparison Report"}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 40px; direction: ${isRTL ? 'rtl' : 'ltr'}; }
-          h1 { color: #1e3a8a; margin-bottom: 20px; }
-          h2 { color: #374151; margin-top: 30px; }
-        </style>
-      </head>
-      <body>
-        <h1>PayGate Optimizer</h1>
-        <h2>${locale === "ar" ? "تقرير مقارنة بوابات الدفع" : "Payment Gateway Comparison Report"}</h2>
-        <p>${locale === "ar" ? "تاريخ التقرير" : "Report Date"}: ${new Date().toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}</p>
-        <hr>
-        <h2>${locale === "ar" ? "التوصيات" : "Recommendations"}</h2>
-        ${recommendations}
-        <hr>
-        <p style="font-size: 12px; color: #666;">
-          ${locale === "ar" 
-            ? "هذا التقرير استرشادي فقط. يرجى التحقق من الأسعار والشروط النهائية مباشرة مع مزودي الخدمة." 
-            : "This report is for guidance only. Please verify final pricing and terms directly with providers."}
-        </p>
-      </body>
-      </html>
-    `
   }
 
   // Share function
@@ -601,16 +606,44 @@ export default function ResultsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {rec.breakdown.map((item, i) => (
-                          <tr key={i} className="border-b last:border-0">
-                            <td className="py-2">
-                              {paymentMethodNames[locale][item.payment_method as keyof typeof paymentMethodNames.ar] || item.payment_method}
-                            </td>
-                            <td className="py-2 text-end tabular-nums">{item.tx_count.toLocaleString()}</td>
-                            <td className="py-2 text-end tabular-nums">{formatCurrency(item.volume)} {t.sar}</td>
-                            <td className="py-2 text-end font-medium tabular-nums">{formatCurrency(item.fee_amount)} {t.sar}</td>
-                          </tr>
-                        ))}
+                        {rec.breakdown.map((item, i) => {
+                          // Handle both new and legacy field names
+                          const paymentMethod = item.payment_method || item.method || "unknown"
+                          const txCount = item.tx_count ?? item.txCount ?? 0
+                          const volume = item.volume ?? 0
+                          const feeAmount = item.fee_amount ?? item.cost ?? 0
+                          
+                          // Skip monthly fee rows or show them differently
+                          if (item.isMonthlyFee || paymentMethod === "monthly_fee") {
+                            return (
+                              <tr key={i} className="border-b last:border-0 bg-muted/30">
+                                <td className="py-2 font-medium" colSpan={3}>
+                                  {locale === "ar" ? "رسوم شهرية ثابتة" : "Monthly Fixed Fee"}
+                                </td>
+                                <td className="py-2 text-end font-medium tabular-nums">
+                                  {formatCurrency(feeAmount)} {t.sar}
+                                </td>
+                              </tr>
+                            )
+                          }
+                          
+                          return (
+                            <tr key={i} className="border-b last:border-0">
+                              <td className="py-2">
+                                {paymentMethodNames[locale][paymentMethod as keyof typeof paymentMethodNames.ar] || paymentMethod}
+                              </td>
+                              <td className="py-2 text-end tabular-nums">
+                                {txCount.toLocaleString()}
+                              </td>
+                              <td className="py-2 text-end tabular-nums">
+                                {formatCurrency(volume)} {t.sar}
+                              </td>
+                              <td className="py-2 text-end font-medium tabular-nums">
+                                {formatCurrency(feeAmount)} {t.sar}
+                              </td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>

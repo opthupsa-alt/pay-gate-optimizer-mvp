@@ -292,12 +292,12 @@ function calculateProviderPricing(
       totalCost += methodCost
 
       breakdown.push({
-        method: methodCode,
+        payment_method: methodCode,
+        tx_count: methodTxCount,
         volume: methodVolume,
-        txCount: methodTxCount,
-        feePercent,
-        feeFixed,
-        cost: methodCost,
+        fee_percent: feePercent,
+        fee_fixed: feeFixed,
+        fee_amount: methodCost,
       })
     } else {
       // Use default rates if no specific fee
@@ -311,12 +311,12 @@ function calculateProviderPricing(
       totalCost += methodCost
 
       breakdown.push({
-        method: methodCode,
+        payment_method: methodCode,
+        tx_count: methodTxCount,
         volume: methodVolume,
-        txCount: methodTxCount,
-        feePercent: defaultPercent,
-        feeFixed: defaultFixed,
-        cost: methodCost,
+        fee_percent: defaultPercent,
+        fee_fixed: defaultFixed,
+        fee_amount: methodCost,
         isEstimate: true,
       })
     }
@@ -325,7 +325,15 @@ function calculateProviderPricing(
   // Add monthly fees
   const monthlyFee = Number(provider.monthlyFee) || 0
   if (monthlyFee > 0) {
-    breakdown.push({ type: "monthly", cost: monthlyFee })
+    breakdown.push({ 
+      payment_method: "monthly_fee",
+      tx_count: 1,
+      volume: 0,
+      fee_percent: 0,
+      fee_fixed: monthlyFee,
+      fee_amount: monthlyFee,
+      isMonthlyFee: true 
+    })
     totalCost += monthlyFee
   }
 
