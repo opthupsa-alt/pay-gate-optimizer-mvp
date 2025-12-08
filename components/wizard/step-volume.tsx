@@ -43,7 +43,7 @@ export function StepVolume({ monthlyGmv, txCount, onGmvChange, onTxCountChange, 
             placeholder="50000"
             dir="ltr"
             className={cn(
-              "h-11 sm:h-10 text-sm sm:text-base pe-10 transition-colors",
+              "h-11 sm:h-10 text-sm sm:text-base ps-4 pe-10 transition-colors",
               gmvTouched && !gmvValid && "border-destructive focus-visible:ring-destructive/20",
               gmvTouched && gmvValid && "border-emerald-500 focus-visible:ring-emerald-500/20"
             )}
@@ -86,7 +86,7 @@ export function StepVolume({ monthlyGmv, txCount, onGmvChange, onTxCountChange, 
             placeholder="500"
             dir="ltr"
             className={cn(
-              "h-11 sm:h-10 text-sm sm:text-base pe-10 transition-colors",
+              "h-11 sm:h-10 text-sm sm:text-base ps-4 pe-10 transition-colors",
               txTouched && !txValid && "border-destructive focus-visible:ring-destructive/20",
               txTouched && txValid && "border-emerald-500 focus-visible:ring-emerald-500/20"
             )}

@@ -42,7 +42,7 @@ export function StepAvgTicket({ avgTicket, monthlyGmv, txCount, onAvgTicketChang
             placeholder={String(calculatedAvg || 100)}
             dir="ltr"
             className={cn(
-              "h-11 sm:h-10 text-sm sm:text-base pe-10 transition-colors",
+              "h-11 sm:h-10 text-sm sm:text-base ps-4 pe-10 transition-colors",
               isTouched && isValid && "border-emerald-500 focus-visible:ring-emerald-500/20"
             )}
           />

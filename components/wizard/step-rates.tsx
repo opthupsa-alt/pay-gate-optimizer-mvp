@@ -78,7 +78,7 @@ export function StepRates({
               onChange={(e) => onRefundsRateChange(Number(e.target.value))}
               dir="ltr"
               className={cn(
-                "h-11 sm:h-10 text-sm sm:text-base pe-10 transition-colors",
+                "h-11 sm:h-10 text-sm sm:text-base ps-4 pe-10 transition-colors",
                 getStatusColor(refundStatus)
               )}
             />
@@ -122,7 +122,7 @@ export function StepRates({
               onChange={(e) => onChargebacksRateChange(Number(e.target.value))}
               dir="ltr"
               className={cn(
-                "h-11 sm:h-10 text-sm sm:text-base pe-10 transition-colors",
+                "h-11 sm:h-10 text-sm sm:text-base ps-4 pe-10 transition-colors",
                 getStatusColor(chargebackStatus)
               )}
             />

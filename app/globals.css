@@ -199,6 +199,14 @@
     display: none !important;
   }
   
+  /* Number input padding - ensure text doesn't touch edges */
+  /* For LTR inputs in RTL context, add left padding */
+  [dir="rtl"] input[type="number"],
+  [dir="rtl"] input[dir="ltr"] {
+    padding-left: 1rem !important;
+    text-align: left;
+  }
+  
   /* RTL-aware input with icon - ensure proper padding */
   [dir="rtl"] input[dir="ltr"] {
     text-align: left;
