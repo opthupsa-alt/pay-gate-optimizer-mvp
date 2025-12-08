@@ -144,11 +144,11 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
   const NextArrow = isRTL ? ArrowLeft : ArrowRight
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 sm:px-0">
+    <div className="mx-auto w-full max-w-2xl px-4 pb-6 sm:px-6 lg:px-0">
       <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} locale={locale} />
 
-      <Card className="shadow-sm">
-        <CardHeader className="p-4 sm:p-6">
+      <Card className="shadow-sm border-0 sm:border">
+        <CardHeader className="px-4 py-5 sm:p-6">
           <div className={cn(
             "flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground",
             isRTL && "font-arabic"
@@ -238,17 +238,18 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
           )}
 
           {/* Navigation Buttons */}
-          <div className="mt-6 sm:mt-8 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="mt-8 sm:mt-8 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <Button 
               variant="outline" 
               onClick={handleBack} 
               disabled={currentStep === 1 || isSubmitting}
               className={cn(
-                "w-full sm:w-auto h-10 sm:h-9 text-sm",
+                "w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-medium",
+                "active:scale-[0.98] transition-transform",
                 isRTL && "font-arabic"
               )}
             >
-              <BackArrow className="h-4 w-4 shrink-0" />
+              <BackArrow className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
               <span className="ms-2">{t.back}</span>
             </Button>
 
@@ -257,31 +258,33 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
                 onClick={handleNext} 
                 disabled={!validateStep()}
                 className={cn(
-                  "w-full sm:w-auto h-10 sm:h-9 text-sm",
+                  "w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-medium",
+                  "active:scale-[0.98] transition-transform",
                   isRTL && "font-arabic"
                 )}
               >
                 <span className="me-2">{t.next}</span>
-                <NextArrow className="h-4 w-4 shrink-0" />
+                <NextArrow className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
               </Button>
             ) : (
               <Button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting || !validateStep()}
                 className={cn(
-                  "w-full sm:w-auto h-10 sm:h-9 text-sm",
+                  "w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-medium",
+                  "active:scale-[0.98] transition-transform",
                   isRTL && "font-arabic"
                 )}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                    <Loader2 className="h-5 w-5 sm:h-4 sm:w-4 animate-spin shrink-0" />
                     <span className="ms-2">{t.submitting}</span>
                   </>
                 ) : (
                   <>
                     <span className="me-2">{t.submit}</span>
-                    <NextArrow className="h-4 w-4 shrink-0" />
+                    <NextArrow className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
                   </>
                 )}
               </Button>

@@ -64,23 +64,23 @@ export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
       <div 
         className={cn(
           "flex items-center justify-between rounded-lg border transition-all duration-200 cursor-pointer",
-          compact ? "p-3" : "p-4",
+          // Mobile-optimized padding and touch targets
+          compact ? "p-3 min-h-[52px]" : "p-3 sm:p-4 min-h-[60px]",
           isActive 
-            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" 
-            : "hover:bg-muted/50 hover:border-muted-foreground/30"
+            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 shadow-sm" 
+            : "hover:bg-muted/50 hover:border-muted-foreground/30 active:bg-muted/70"
         )}
         onClick={() => handleToggle(feature.key)}
       >
-        <div className={cn("flex items-start gap-3", compact && "items-center gap-2")}>
+        <div className={cn("flex items-start gap-2 sm:gap-3", compact && "items-center")}>
           <feature.icon className={cn(
             "shrink-0",
-            compact ? "h-4 w-4" : "h-5 w-5 mt-0.5",
+            compact ? "h-5 w-5" : "h-5 w-5 sm:h-5 sm:w-5 mt-0.5",
             isActive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
           )} />
-          <div>
+          <div className="flex-1">
             <span className={cn(
-              "font-medium block",
-              compact && "text-sm",
+              "font-medium block text-sm sm:text-base leading-tight",
               isRTL && "font-arabic",
               isActive && "text-emerald-800 dark:text-emerald-200"
             )}>
@@ -88,7 +88,7 @@ export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
             </span>
             {!compact && (
               <span className={cn(
-                "text-sm",
+                "text-xs sm:text-sm leading-snug mt-0.5 block",
                 isRTL && "font-arabic",
                 isActive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
               )}>
@@ -101,22 +101,23 @@ export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
           checked={isActive} 
           onCheckedChange={() => handleToggle(feature.key)}
           onClick={(e) => e.stopPropagation()}
+          className="shrink-0 ms-2"
         />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* Core Features */}
       <div>
         <Label className={cn(
-          "text-base font-semibold mb-3 block",
+          "text-sm sm:text-base font-semibold mb-2.5 sm:mb-3 block",
           isRTL && "font-arabic"
         )}>
           {locale === "ar" ? "الميزات الأساسية" : "Core Features"}
         </Label>
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {coreFeatures.map((feature) => (
             <FeatureItem key={feature.key} feature={feature} />
           ))}
@@ -126,12 +127,12 @@ export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
       {/* Platform Integrations */}
       <div>
         <Label className={cn(
-          "text-base font-semibold mb-3 block",
+          "text-sm sm:text-base font-semibold mb-2.5 sm:mb-3 block",
           isRTL && "font-arabic"
         )}>
           {locale === "ar" ? "تكاملات المنصات" : "Platform Integrations"}
         </Label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2.5 sm:gap-3">
           {platformFeatures.map((feature) => (
             <FeatureItem key={feature.key} feature={feature} compact />
           ))}
@@ -141,12 +142,12 @@ export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
       {/* Payment Methods */}
       <div>
         <Label className={cn(
-          "text-base font-semibold mb-3 block",
+          "text-sm sm:text-base font-semibold mb-2.5 sm:mb-3 block",
           isRTL && "font-arabic"
         )}>
           {locale === "ar" ? "طرق الدفع المطلوبة" : "Required Payment Methods"}
         </Label>
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {paymentFeatures.map((feature) => (
             <FeatureItem key={feature.key} feature={feature} />
           ))}
@@ -156,12 +157,12 @@ export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
       {/* International */}
       <div>
         <Label className={cn(
-          "text-base font-semibold mb-3 block",
+          "text-sm sm:text-base font-semibold mb-2.5 sm:mb-3 block",
           isRTL && "font-arabic"
         )}>
           {locale === "ar" ? "العملاء الدوليون" : "International"}
         </Label>
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {internationalFeatures.map((feature) => (
             <FeatureItem key={feature.key} feature={feature} />
           ))}

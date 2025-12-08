@@ -31,15 +31,23 @@ export function StepPaymentMix({ paymentMix, onPaymentMixChange, locale }: StepP
     { key: "other" as const, label: t.other, color: "bg-gray-400" },
   ]
 
+  const isRTL = locale === "ar"
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <div className="space-y-1">
-        <Label>{t.paymentMix}</Label>
-        <p className="text-sm text-muted-foreground">{t.paymentMixNote}</p>
+        <Label className={cn(
+          "text-sm sm:text-base",
+          isRTL && "font-arabic"
+        )}>{t.paymentMix}</Label>
+        <p className={cn(
+          "text-xs sm:text-sm text-muted-foreground",
+          isRTL && "font-arabic"
+        )}>{t.paymentMixNote}</p>
       </div>
 
-      {/* Visual distribution bar */}
-      <div className="h-4 overflow-hidden rounded-full bg-muted">
+      {/* Visual distribution bar - taller for mobile */}
+      <div className="h-5 sm:h-4 overflow-hidden rounded-full bg-muted">
         <div className="flex h-full">
           {methods.map((method) => (
             <div
@@ -51,31 +59,39 @@ export function StepPaymentMix({ paymentMix, onPaymentMixChange, locale }: StepP
         </div>
       </div>
 
-      {/* Sliders */}
-      <div className="space-y-4">
+      {/* Sliders - better touch targets */}
+      <div className="space-y-5 sm:space-y-4">
         {methods.map((method) => (
-          <div key={method.key} className="space-y-2">
+          <div key={method.key} className="space-y-2.5 sm:space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className={cn("h-3 w-3 rounded-full", method.color)} />
-                <Label className="text-sm">{method.label}</Label>
+                <div className={cn("h-3.5 w-3.5 sm:h-3 sm:w-3 rounded-full shrink-0", method.color)} />
+                <Label className={cn(
+                  "text-sm sm:text-sm",
+                  isRTL && "font-arabic"
+                )}>{method.label}</Label>
               </div>
-              <span className="text-sm font-medium">{paymentMix[method.key]}%</span>
+              <span className={cn(
+                "text-sm font-medium tabular-nums min-w-[3rem] text-end",
+                isRTL ? "font-sans" : ""
+              )}>{paymentMix[method.key]}%</span>
             </div>
             <Slider
               value={[paymentMix[method.key]]}
               onValueChange={([value]) => handleChange(method.key, value)}
               max={100}
               step={5}
+              className="touch-pan-x"
             />
           </div>
         ))}
       </div>
 
-      {/* Total indicator */}
+      {/* Total indicator - mobile optimized */}
       <div
         className={cn(
-          "rounded-lg border p-3 text-center text-sm font-medium",
+          "rounded-lg border p-3 sm:p-3 text-center text-sm font-medium",
+          isRTL && "font-arabic",
           isValid
             ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
             : "border-destructive/50 bg-destructive/10 text-destructive",

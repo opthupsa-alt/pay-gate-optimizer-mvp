@@ -110,7 +110,7 @@ export function StepSector({
         <RadioGroup 
           value={sectorId} 
           onValueChange={onSectorChange}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3"
         >
           {sectors.map((sector) => {
             const Icon = getSectorIcon(sector)
@@ -127,10 +127,11 @@ export function StepSector({
                 <Label
                   htmlFor={`sector-${sector.id}`}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-2 sm:gap-3 cursor-pointer",
-                    "rounded-xl border-2 bg-card p-4 sm:p-5 min-h-[100px] sm:min-h-[120px]",
+                    "flex flex-col items-center justify-center gap-2 cursor-pointer",
+                    "rounded-xl border-2 bg-card p-3 sm:p-4 min-h-[90px] sm:min-h-[110px]",
                     "text-center transition-all duration-200",
-                    "hover:bg-accent/50 hover:border-primary/50 hover:shadow-md",
+                    "hover:bg-accent/50 hover:border-primary/50",
+                    "active:scale-[0.98] active:bg-primary/10",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     isSelected 
                       ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20" 
@@ -139,11 +140,11 @@ export function StepSector({
                   )}
                 >
                   <Icon className={cn(
-                    "h-7 w-7 sm:h-8 sm:w-8 transition-colors",
+                    "h-6 w-6 sm:h-7 sm:w-7 transition-colors shrink-0",
                     isSelected ? "text-primary" : "text-muted-foreground"
                   )} />
                   <span className={cn(
-                    "text-xs sm:text-sm font-medium leading-tight",
+                    "text-xs sm:text-sm font-medium leading-tight line-clamp-2",
                     isSelected ? "text-primary" : "text-foreground"
                   )}>
                     {sectorName}
@@ -163,7 +164,7 @@ export function StepSector({
         <RadioGroup 
           value={businessType} 
           onValueChange={onBusinessTypeChange} 
-          className="grid grid-cols-2 gap-3"
+          className="grid grid-cols-2 gap-2 sm:gap-3"
         >
           {businessTypes.map((type) => {
             const isSelected = businessType === type.value
@@ -179,10 +180,11 @@ export function StepSector({
                 <Label
                   htmlFor={`business-${type.value}`}
                   className={cn(
-                    "flex items-center gap-3 cursor-pointer",
-                    "rounded-xl border-2 bg-card p-4 sm:p-5",
+                    "flex items-center gap-2 sm:gap-3 cursor-pointer",
+                    "rounded-xl border-2 bg-card p-3 sm:p-4",
                     "text-sm sm:text-base font-medium transition-all duration-200",
-                    "hover:bg-accent/50 hover:border-primary/50 hover:shadow-md",
+                    "hover:bg-accent/50 hover:border-primary/50",
+                    "active:scale-[0.98] active:bg-primary/10",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     isSelected 
                       ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20" 
@@ -191,10 +193,11 @@ export function StepSector({
                   )}
                 >
                   <Icon className={cn(
-                    "h-5 w-5 sm:h-6 sm:w-6 shrink-0 transition-colors",
+                    "h-5 w-5 shrink-0 transition-colors",
                     isSelected ? "text-primary" : "text-muted-foreground"
                   )} />
                   <span className={cn(
+                    "truncate",
                     isSelected ? "text-primary" : "text-foreground"
                   )}>
                     {type.label}

@@ -9,6 +9,7 @@ import { Logo } from "@/components/ui/logo"
 import { Menu, X, User, LogOut } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
+import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -147,8 +148,9 @@ export function Navbar({ locale }: NavbarProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden h-10 w-10"
             onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -157,15 +159,17 @@ export function Navbar({ locale }: NavbarProps) {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="border-t md:hidden">
-          <div className="container py-4 space-y-3">
+        <div className="border-t md:hidden bg-background/95 backdrop-blur">
+          <div className="container py-3 space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block py-2 text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(link.href) ? "text-primary" : "text-muted-foreground"
-                }`}
+                className={cn(
+                  "block py-3 px-3 text-base font-medium rounded-lg transition-colors",
+                  "hover:bg-accent active:bg-accent/80",
+                  isActive(link.href) ? "text-primary bg-primary/5" : "text-foreground"
+                )}
                 onClick={() => setIsOpen(false)}
               >
                 {link.label}
@@ -174,7 +178,7 @@ export function Navbar({ locale }: NavbarProps) {
             {mounted && !session && (
               <Link
                 href="/auth/login"
-                className="block py-2 text-sm font-medium text-primary"
+                className="block py-3 px-3 text-base font-medium text-primary bg-primary/5 rounded-lg mt-2"
                 onClick={() => setIsOpen(false)}
               >
                 {t.login}
