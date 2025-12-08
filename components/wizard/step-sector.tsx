@@ -179,6 +179,7 @@ export function StepSector({
                 />
                 <Label
                   htmlFor={`business-${type.value}`}
+                  dir={isRTL ? "rtl" : "ltr"}
                   className={cn(
                     "flex items-center gap-2 sm:gap-3 cursor-pointer",
                     "rounded-xl border-2 bg-card p-3 sm:p-4",

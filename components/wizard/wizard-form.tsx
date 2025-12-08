@@ -144,7 +144,7 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
   const NextArrow = isRTL ? ArrowLeft : ArrowRight
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 pb-6 sm:px-6 lg:px-0">
+    <div dir={isRTL ? "rtl" : "ltr"} className="mx-auto w-full max-w-2xl px-4 pb-6 sm:px-6 lg:px-0">
       <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} locale={locale} />
 
       <Card className="shadow-sm border-0 sm:border">

@@ -62,6 +62,7 @@ export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
     
     return (
       <div 
+        dir={isRTL ? "rtl" : "ltr"}
         className={cn(
           "flex items-center justify-between rounded-lg border transition-all duration-200 cursor-pointer",
           // Mobile-optimized padding and touch targets

@@ -63,7 +63,7 @@ export function StepPaymentMix({ paymentMix, onPaymentMixChange, locale }: StepP
       <div className="space-y-5 sm:space-y-4">
         {methods.map((method) => (
           <div key={method.key} className="space-y-2.5 sm:space-y-2">
-            <div className="flex items-center justify-between">
+            <div dir={isRTL ? "rtl" : "ltr"} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className={cn("h-3.5 w-3.5 sm:h-3 sm:w-3 rounded-full shrink-0", method.color)} />
                 <Label className={cn(
