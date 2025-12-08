@@ -207,9 +207,9 @@ export async function POST(request: NextRequest) {
       total: recommendations.length,
     })
   } catch (error) {
-    console.error("Compare API error:", error)
+    console.error("Compare API error:", error instanceof Error ? error.message : "Unknown error")
     return NextResponse.json(
-      { error: "Internal server error", details: String(error) },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

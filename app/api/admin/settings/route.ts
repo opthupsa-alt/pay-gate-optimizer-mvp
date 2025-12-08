@@ -5,7 +5,10 @@ import prisma from "@/lib/db"
 // Only admins can access settings
 async function isAdmin(request: NextRequest) {
   const secret = process.env.NEXTAUTH_SECRET
-  if (!secret) return true // Allow in demo mode if no auth configured
+  if (!secret) {
+    console.error("NEXTAUTH_SECRET is not configured - denying access")
+    return false
+  }
   
   const token = await getToken({ req: request, secret })
   if (!token) return false

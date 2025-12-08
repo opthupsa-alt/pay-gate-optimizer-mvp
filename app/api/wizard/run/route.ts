@@ -148,9 +148,9 @@ export async function POST(request: NextRequest) {
       recommendations: recommendations.slice(0, 5), // Top 5
     })
   } catch (error) {
-    console.error("Wizard API error:", error)
+    console.error("Wizard API error:", error instanceof Error ? error.message : "Unknown error")
     return NextResponse.json(
-      { error: "Internal server error", details: String(error) },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
