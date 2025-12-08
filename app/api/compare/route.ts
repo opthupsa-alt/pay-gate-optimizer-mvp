@@ -149,12 +149,26 @@ export async function POST(request: NextRequest) {
     // Hash IP for privacy
     const ipHash = await hashIP(clientIP)
 
+    // Find sector by code if provided
+    let sectorId: string | null = null
+    if (wizardData.sector_id) {
+      const sector = await prisma.sector.findFirst({
+        where: {
+          OR: [
+            { id: wizardData.sector_id },
+            { code: wizardData.sector_id },
+          ],
+        },
+      })
+      sectorId = sector?.id || null
+    }
+
     // Create wizard run record
     const wizardRun = await prisma.wizardRun.create({
       data: {
         locale: wizardData.locale || "ar",
         ipHash: ipHash,
-        sectorId: wizardData.sector_id || null,
+        sectorId: sectorId,
         businessType: wizardData.business_type,
         monthlyGmv: wizardData.monthly_gmv,
         txCount: wizardData.tx_count,

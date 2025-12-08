@@ -91,12 +91,26 @@ export async function POST(request: NextRequest) {
       weightsMap
     )
 
+    // Find sector by code if provided
+    let sectorId: string | null = null
+    if (data.sector_id) {
+      const sector = await prisma.sector.findFirst({
+        where: {
+          OR: [
+            { id: data.sector_id },
+            { code: data.sector_id },
+          ],
+        },
+      })
+      sectorId = sector?.id || null
+    }
+
     // Create wizard run record
     const wizardRun = await prisma.wizardRun.create({
       data: {
         locale: data.locale || "ar",
         ipHash: ipHash,
-        sectorId: data.sector_id,
+        sectorId: sectorId,
         businessType: data.business_type,
         monthlyGmv: data.monthly_gmv,
         txCount: data.tx_count,
