@@ -1,0 +1,750 @@
+// ======================================================================
+// PayGate Optimizer MVP - Database Schema
+// ======================================================================
+// 
+// منصة مقارنة بوابات الدفع السعودية
+// Saudi Payment Gateway Comparison Platform
+// 
+// Database: PostgreSQL (Neon/Supabase/Vercel Postgres)
+// ORM: Prisma 5.x
+// 
+// ======================================================================
+// Schema Overview (نظرة عامة على المخطط):
+// ======================================================================
+// 
+// 1. Authentication (المصادقة):
+//    - User: المستخدمين (تجار، محللين، مدراء)
+//    - Account: حسابات OAuth المرتبطة
+//    - Session: جلسات المستخدمين
+// 
+// 2. Providers (مزودي الخدمة):
+//    - Provider: بوابات الدفع (ميسر، تاب، هايبرباي...)
+//    - ProviderPaymentMethod: طرق الدفع المدعومة لكل مزود
+//    - PricingRule: قواعد التسعير حسب القطاع
+//    - ProviderFee: الرسوم الثابتة والمتغيرة
+//    - ProviderIntegration: المنصات المدعومة (سلة، زد...)
+//    - OpsMetric: مقاييس العمليات (وقت التفعيل، الدعم)
+//    - ProviderReview: تقييمات المستخدمين
+// 
+// 3. Catalog (الكتالوج):
+//    - Sector: القطاعات التجارية
+//    - PaymentMethod: طرق الدفع (مدى، فيزا، أبل باي...)
+// 
+// 4. Wizard & Results (المعالج والنتائج):
+//    - WizardRun: تشغيل المعالج
+//    - Recommendation: التوصيات للتجار
+//    - ScoringWeight: أوزان التقييم
+// 
+// 5. CRM (إدارة العملاء):
+//    - Lead: العملاء المحتملين
+//    - AuditLog: سجل التغييرات
+// 
+// ======================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==================== Authentication (المصادقة) ====================
+// NextAuth.js compatible schema for user authentication
+
+/// المستخدمون - يشمل التجار والمحللين والمدراء
+/// Users table - includes merchants, analysts, and admins
+model User {
+  id            String    @id @default(cuid())
+  name          String?   /// الاسم الكامل
+  email         String    @unique /// البريد الإلكتروني (فريد)
+  emailVerified DateTime? /// تاريخ تأكيد البريد
+  password      String?   /// كلمة المرور المشفرة (bcrypt)
+  image         String?   /// صورة الملف الشخصي
+  role          UserRole  @default(merchant) /// الدور: تاجر/محلل/مدير
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  leads    Lead[]    @relation("LeadOwner")
+
+  @@map("users")
+}
+
+/// حسابات OAuth المرتبطة (Google, GitHub, etc.)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+/// جلسات المستخدمين
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+/// رموز التحقق للتسجيل واستعادة كلمة المرور
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+/// أدوار المستخدمين
+/// admin: مدير النظام - صلاحيات كاملة
+/// analyst: محلل - عرض وتحليل البيانات
+/// merchant: تاجر - استخدام المعالج فقط
+enum UserRole {
+  admin
+  analyst
+  merchant
+}
+
+// ==================== Catalog (الكتالوج) ====================
+
+/// القطاعات التجارية
+/// Business sectors for categorizing merchants
+model Sector {
+  id        String   @id @default(cuid())
+  code      String   @unique /// رمز القطاع (ecommerce, restaurants, etc.)
+  nameAr    String   @map("name_ar") /// الاسم بالعربية
+  nameEn    String   @map("name_en") /// الاسم بالإنجليزية
+  createdAt DateTime @default(now()) @map("created_at")
+
+  wizardRuns         WizardRun[]
+  providerSectorRules ProviderSectorRule[]
+
+  @@map("sectors")
+}
+
+/// طرق الدفع المتاحة
+/// Available payment methods (Mada, Visa, Apple Pay, etc.)
+model PaymentMethod {
+  id           String                @id @default(cuid())
+  code         String                @unique /// رمز طريقة الدفع
+  nameAr       String                @map("name_ar")
+  nameEn       String                @map("name_en")
+  category     PaymentMethodCategory @default(other) /// فئة طريقة الدفع
+  iconName     String?               @map("icon_name") /// اسم الأيقونة
+  displayOrder Int                   @default(0) @map("display_order") /// ترتيب العرض
+  isActive     Boolean               @default(true) @map("is_active")
+  createdAt    DateTime              @default(now()) @map("created_at")
+
+  providerPaymentMethods ProviderPaymentMethod[]
+  pricingRules           PricingRule[]
+  providerFees           ProviderFee[]
+
+  @@map("payment_methods")
+}
+
+/// فئات طرق الدفع
+enum PaymentMethodCategory {
+  card   /// بطاقات ائتمان
+  debit  /// بطاقات خصم (مدى)
+  wallet /// محافظ رقمية (Apple Pay, STC Pay)
+  bank
+  bnpl
+  other
+}
+
+/// القدرات/الميزات المتاحة
+/// Capabilities that providers can support
+model Capability {
+  id        String   @id @default(cuid())
+  code      String   @unique /// رمز القدرة (recurring, tokenization, etc.)
+  nameAr    String   @map("name_ar")
+  nameEn    String   @map("name_en")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  providerCapabilities ProviderCapability[]
+
+  @@map("capabilities")
+}
+
+// ==================== Provider Tables (مزودي الخدمة) ====================
+
+/// بوابات الدفع
+/// Payment gateway providers (Moyasar, Tap, HyperPay, etc.)
+/// 
+/// هذا الجدول يحتوي على المعلومات الأساسية لكل مزود:
+/// - معلومات عامة (الاسم، الموقع، الشعار)
+/// - الرسوم (التسجيل، الشهرية)
+/// - العمليات (وقت التفعيل، التسوية)
+/// - الدعم (القنوات، ساعات العمل)
+/// - العملات والمخاطر
+model Provider {
+  id                    String          @id @default(cuid())
+  slug                  String          @unique /// المعرف الفريد URL-safe
+  nameAr                String          @map("name_ar") /// الاسم بالعربية
+  nameEn                String          @map("name_en") /// الاسم بالإنجليزية
+  websiteUrl            String?         @map("website_url") /// رابط الموقع
+  logoPath              String?         @map("logo_path") /// مسار الشعار
+  descriptionAr         String?         @db.Text @map("description_ar")
+  descriptionEn         String?         @db.Text @map("description_en")
+  category              ProviderCategory @default(payment_gateway)
+  countriesServed       Json            @default("[\"SA\"]") @map("countries_served")
+  licenseInfo           Json            @default("{}") @map("license_info")
+  
+  // ===== Fees (الرسوم) =====
+  setupFee              Decimal?        @db.Decimal(10, 2) @map("setup_fee") /// رسوم التسجيل
+  monthlyFee            Decimal?        @db.Decimal(10, 2) @map("monthly_fee") /// الرسوم الشهرية
+  
+  // ===== Operations (العمليات) =====
+  activationTimeDaysMin Int             @default(1) @map("activation_time_days_min") /// أقل وقت للتفعيل
+  activationTimeDaysMax Int             @default(14) @map("activation_time_days_max") /// أقصى وقت للتفعيل
+  settlementDaysMin     Int             @default(1) @map("settlement_days_min") /// أقل وقت للتسوية
+  settlementDaysMax     Int             @default(3) @map("settlement_days_max") /// أقصى وقت للتسوية
+  payoutSchedule        PayoutSchedule  @default(weekly) @map("payout_schedule") /// جدول الدفع
+  payoutMinAmount       Decimal?        @db.Decimal(10, 2) @map("payout_min_amount") /// الحد الأدنى للسحب
+  
+  // ===== Support (الدعم) =====
+  supportChannels       Json            @default("[]") @map("support_channels") /// قنوات الدعم
+  supportHours          String?         @map("support_hours") /// ساعات الدعم
+  supportSla            String?         @map("support_sla") /// اتفاقية مستوى الخدمة
+  docsUrl               String?         @map("docs_url") /// رابط التوثيق
+  termsUrl              String?         @map("terms_url") /// رابط الشروط
+  pricingUrl            String?         @map("pricing_url") /// رابط الأسعار
+  
+  // ===== Currencies (العملات) =====
+  supportedCurrencies   Json            @default("[\"SAR\"]") @map("supported_currencies")
+  multiCurrencySupported Boolean        @default(false) @map("multi_currency_supported")
+  
+  // ===== Risk (المخاطر) =====
+  riskNotes             String?         @db.Text @map("risk_notes") /// ملاحظات المخاطر
+  rollingReservePercent Decimal?        @db.Decimal(5, 2) @map("rolling_reserve_percent") /// نسبة الاحتياطي
+  rollingReserveDays    Int?            @map("rolling_reserve_days") /// أيام الاحتياطي
+  
+  // Pros/Cons
+  prosAr                Json            @default("[]") @map("pros_ar")
+  prosEn                Json            @default("[]") @map("pros_en")
+  consAr                Json            @default("[]") @map("cons_ar")
+  consEn                Json            @default("[]") @map("cons_en")
+  
+  // Status
+  status                ProviderStatus  @default(active)
+  notesAr               String?         @db.Text @map("notes_ar")
+  notesEn               String?         @db.Text @map("notes_en")
+  isActive              Boolean         @default(true) @map("is_active")
+  lastVerifiedAt        DateTime        @default(now()) @map("last_verified_at")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  providerPaymentMethods ProviderPaymentMethod[]
+  pricingRules           PricingRule[]
+  providerCapabilities   ProviderCapability[]
+  providerSectorRules    ProviderSectorRule[]
+  opsMetrics             OpsMetrics?
+  recommendations        Recommendation[]
+  providerFees           ProviderFee[]
+  providerIntegrations   ProviderIntegration[]
+  providerCurrencies     ProviderCurrency[]
+  providerSources        ProviderSource[]
+  providerReviews        ProviderReview[]
+  providerWallets        ProviderWallet[]
+  providerBnpl           ProviderBnpl[]
+
+  @@map("providers")
+}
+
+enum ProviderCategory {
+  payment_gateway
+  psp
+  acquirer
+  bnpl
+  aggregator
+  wallet
+}
+
+enum ProviderStatus {
+  active
+  limited
+  paused
+  deprecated
+}
+
+enum PayoutSchedule {
+  daily
+  weekly
+  biweekly
+  monthly
+  custom
+}
+
+model ProviderPaymentMethod {
+  id                String   @id @default(cuid())
+  providerId        String   @map("provider_id")
+  paymentMethodId   String   @map("payment_method_id")
+  isSupported       Boolean  @default(true) @map("is_supported")
+  enabled           Boolean  @default(true)
+  supportsRecurring Boolean  @default(false) @map("supports_recurring")
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  provider      Provider      @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, paymentMethodId])
+  @@map("provider_payment_methods")
+}
+
+model PricingRule {
+  id                  String   @id @default(cuid())
+  providerId          String   @map("provider_id")
+  paymentMethodId     String?  @map("payment_method_id")
+  feePercent          Decimal  @db.Decimal(5, 4) @map("fee_percent")
+  feeFixed            Decimal  @db.Decimal(10, 2) @map("fee_fixed")
+  monthlyFee          Decimal  @default(0) @db.Decimal(10, 2) @map("monthly_fee")
+  setupFee            Decimal  @default(0) @db.Decimal(10, 2) @map("setup_fee")
+  refundFeeFixed      Decimal  @default(0) @db.Decimal(10, 2) @map("refund_fee_fixed")
+  chargebackFeeFixed  Decimal  @default(0) @db.Decimal(10, 2) @map("chargeback_fee_fixed")
+  minimumFeePerTxn    Decimal? @db.Decimal(10, 2) @map("minimum_fee_per_txn")
+  maximumFeePerTxn    Decimal? @db.Decimal(10, 2) @map("maximum_fee_per_txn")
+  notesAr             String?  @db.Text @map("notes_ar")
+  notesEn             String?  @db.Text @map("notes_en")
+  effectiveFrom       DateTime? @map("effective_from")
+  effectiveTo         DateTime? @map("effective_to")
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  provider      Provider       @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+
+  @@map("pricing_rules")
+}
+
+model ProviderCapability {
+  id           String   @id @default(cuid())
+  providerId   String   @map("provider_id")
+  capabilityId String   @map("capability_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  provider   Provider   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  capability Capability @relation(fields: [capabilityId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, capabilityId])
+  @@map("provider_capabilities")
+}
+
+model ProviderSectorRule {
+  id          String   @id @default(cuid())
+  providerId  String   @map("provider_id")
+  sectorId    String   @map("sector_id")
+  isSupported Boolean  @default(true) @map("is_supported")
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  sector   Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, sectorId])
+  @@map("provider_sector_rules")
+}
+
+model OpsMetrics {
+  id              String   @id @default(cuid())
+  providerId      String   @unique @map("provider_id")
+  onboardingScore Int      @default(70) @map("onboarding_score")
+  supportScore    Int      @default(70) @map("support_score")
+  docsScore       Int      @default(70) @map("docs_score")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@map("ops_metrics")
+}
+
+// ==================== Extended Provider Tables ====================
+
+model ProviderFee {
+  id                        String   @id @default(cuid())
+  providerId                String   @map("provider_id")
+  paymentMethodId           String?  @map("payment_method_id")
+  feePercent                Decimal  @db.Decimal(5, 4) @map("fee_percent")
+  feeFixed                  Decimal  @db.Decimal(10, 2) @map("fee_fixed")
+  monthlyFee                Decimal  @default(0) @db.Decimal(10, 2) @map("monthly_fee")
+  setupFee                  Decimal  @default(0) @db.Decimal(10, 2) @map("setup_fee")
+  refundFeeFixed            Decimal  @default(0) @db.Decimal(10, 2) @map("refund_fee_fixed")
+  refundFeePercent          Decimal  @default(0) @db.Decimal(5, 4) @map("refund_fee_percent")
+  chargebackFeeFixed        Decimal  @default(0) @db.Decimal(10, 2) @map("chargeback_fee_fixed")
+  crossBorderFeePercent     Decimal  @default(0) @db.Decimal(5, 4) @map("cross_border_fee_percent")
+  currencyConversionPercent Decimal  @default(0) @db.Decimal(5, 4) @map("currency_conversion_fee_percent")
+  payoutFeeFixed            Decimal  @default(0) @db.Decimal(10, 2) @map("payout_fee_fixed")
+  minimumFeePerTxn          Decimal? @db.Decimal(10, 2) @map("minimum_fee_per_txn")
+  maximumFeePerTxn          Decimal? @db.Decimal(10, 2) @map("maximum_fee_per_txn")
+  minimumTxnAmount          Decimal? @db.Decimal(10, 2) @map("minimum_txn_amount")
+  maximumTxnAmount          Decimal? @db.Decimal(10, 2) @map("maximum_txn_amount")
+  volumeTier                String?  @map("volume_tier")
+  currency                  String   @default("SAR")
+  notesAr                   String?  @db.Text @map("notes_ar")
+  notesEn                   String?  @db.Text @map("notes_en")
+  isEstimated               Boolean  @default(false) @map("is_estimated")
+  sourceUrl                 String?  @map("source_url")
+  effectiveFrom             DateTime? @map("effective_from")
+  effectiveTo               DateTime? @map("effective_to")
+  isActive                  Boolean  @default(true) @map("is_active")
+  lastVerifiedAt            DateTime @default(now()) @map("last_verified_at")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  provider      Provider       @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+
+  @@map("provider_fees")
+}
+
+model ProviderIntegration {
+  id              String            @id @default(cuid())
+  providerId      String            @map("provider_id")
+  platform        IntegrationPlatform
+  integrationType IntegrationType   @map("integration_type")
+  isOfficial      Boolean           @default(true) @map("is_official")
+  officialUrl     String?           @map("official_url")
+  docsUrl         String?           @map("docs_url")
+  setupDifficulty SetupDifficulty   @default(medium) @map("setup_difficulty")
+  featuresSupported Json            @default("[]") @map("features_supported")
+  notesAr         String?           @db.Text @map("notes_ar")
+  notesEn         String?           @db.Text @map("notes_en")
+  isActive        Boolean           @default(true) @map("is_active")
+  lastVerifiedAt  DateTime          @default(now()) @map("last_verified_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, platform])
+  @@map("provider_integrations")
+}
+
+enum IntegrationPlatform {
+  shopify
+  woocommerce
+  magento
+  opencart
+  prestashop
+  salla
+  zid
+  expandcart
+  youcan
+  wordpress
+  custom_api
+  hosted_checkout
+  mobile_sdk
+  pos
+}
+
+enum IntegrationType {
+  plugin
+  api
+  hosted
+  redirect
+  sdk
+  iframe
+}
+
+enum SetupDifficulty {
+  easy
+  medium
+  hard
+}
+
+model ProviderCurrency {
+  id                     String   @id @default(cuid())
+  providerId             String   @map("provider_id")
+  currencyCode           String   @map("currency_code")
+  isSettlementSupported  Boolean  @default(true) @map("is_settlement_supported")
+  isPricingSupported     Boolean  @default(true) @map("is_pricing_supported")
+  conversionFeePercent   Decimal  @default(0) @db.Decimal(5, 4) @map("conversion_fee_percent")
+  notes                  String?  @db.Text
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, currencyCode])
+  @@map("provider_currencies")
+}
+
+model ProviderSource {
+  id              String          @id @default(cuid())
+  entityType      String          @map("entity_type")
+  entityId        String          @map("entity_id")
+  sourceType      SourceType      @map("source_type")
+  sourceUrl       String          @map("source_url")
+  sourceName      String?         @map("source_name")
+  extractedFields Json            @default("{}") @map("extracted_fields")
+  screenshotPath  String?         @map("screenshot_path")
+  isEstimated     Boolean         @default(false) @map("is_estimated")
+  confidenceLevel ConfidenceLevel @default(medium) @map("confidence_level")
+  notes           String?         @db.Text
+  verifiedBy      String?         @map("verified_by")
+  lastVerifiedAt  DateTime        @default(now()) @map("last_verified_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  provider Provider @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@map("provider_sources")
+}
+
+enum SourceType {
+  official_website
+  official_docs
+  official_pricing
+  review_platform
+  user_report
+  api_response
+  support_confirmation
+}
+
+enum ConfidenceLevel {
+  high
+  medium
+  low
+}
+
+model ProviderReview {
+  id                  String         @id @default(cuid())
+  providerId          String         @map("provider_id")
+  platform            ReviewPlatform
+  ratingAvg           Decimal?       @db.Decimal(3, 2) @map("rating_avg")
+  ratingCount         Int            @default(0) @map("rating_count")
+  ratingMax           Int            @default(5) @map("rating_max")
+  highlightsPositive  Json           @default("[]") @map("highlights_positive")
+  highlightsNegative  Json           @default("[]") @map("highlights_negative")
+  sampleReviews       Json           @default("[]") @map("sample_reviews")
+  sourceUrl           String         @map("source_url")
+  lastVerifiedAt      DateTime       @default(now()) @map("last_verified_at")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, platform])
+  @@map("provider_reviews")
+}
+
+enum ReviewPlatform {
+  trustpilot
+  g2
+  capterra
+  google_play
+  app_store
+  twitter
+  reddit
+  internal
+  other
+}
+
+model ProviderWallet {
+  id           String     @id @default(cuid())
+  providerId   String     @map("provider_id")
+  walletType   WalletType @map("wallet_type")
+  isSupported  Boolean    @default(true) @map("is_supported")
+  feePercent   Decimal?   @db.Decimal(5, 4) @map("fee_percent")
+  feeFixed     Decimal?   @db.Decimal(10, 2) @map("fee_fixed")
+  requirements String?    @db.Text
+  notesAr      String?    @db.Text @map("notes_ar")
+  notesEn      String?    @db.Text @map("notes_en")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, walletType])
+  @@map("provider_wallets")
+}
+
+enum WalletType {
+  apple_pay
+  google_pay
+  samsung_pay
+  stc_pay
+  urpay
+  mobily_pay
+  paypal
+  other
+}
+
+model ProviderBnpl {
+  id               String       @id @default(cuid())
+  providerId       String       @map("provider_id")
+  bnplProvider     BnplProvider @map("bnpl_provider")
+  isIntegrated     Boolean      @default(true) @map("is_integrated")
+  merchantFeePercent Decimal?   @db.Decimal(5, 4) @map("merchant_fee_percent")
+  merchantFeeFixed Decimal      @default(0) @db.Decimal(10, 2) @map("merchant_fee_fixed")
+  maxInstallments  Int          @default(4) @map("max_installments")
+  minOrderAmount   Decimal?     @db.Decimal(10, 2) @map("min_order_amount")
+  maxOrderAmount   Decimal?     @db.Decimal(10, 2) @map("max_order_amount")
+  settlementDays   Int?         @map("settlement_days")
+  notesAr          String?      @db.Text @map("notes_ar")
+  notesEn          String?      @db.Text @map("notes_en")
+  integrationUrl   String?      @map("integration_url")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, bnplProvider])
+  @@map("provider_bnpl")
+}
+
+enum BnplProvider {
+  tabby
+  tamara
+  postpay
+  spotii
+  cashew
+  splitit
+  other
+}
+
+// ==================== Wizard & Recommendations ====================
+
+model ScoringWeight {
+  id          String   @id @default(cuid())
+  factor      String   @unique
+  weight      Int      @default(25)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("scoring_weights")
+}
+
+model WizardRun {
+  id              String   @id @default(cuid())
+  locale          String   @default("ar")
+  ipHash          String?  @map("ip_hash")
+  sectorId        String?  @map("sector_id")
+  businessType    String?  @map("business_type")
+  monthlyGmv      Decimal? @db.Decimal(15, 2) @map("monthly_gmv")
+  txCount         Int?     @map("tx_count")
+  avgTicket       Decimal? @db.Decimal(10, 2) @map("avg_ticket")
+  refundsRate     Decimal  @default(0) @db.Decimal(5, 4) @map("refunds_rate")
+  chargebacksRate Decimal  @default(0) @db.Decimal(5, 4) @map("chargebacks_rate")
+  paymentMix      Json     @default("{}") @map("payment_mix")
+  needs           Json     @default("{}") @map("needs")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  sector          Sector?          @relation(fields: [sectorId], references: [id], onDelete: SetNull)
+  recommendations Recommendation[]
+  leads           Lead[]
+
+  @@map("wizard_runs")
+}
+
+/// التوصيات الناتجة عن تشغيل المعالج
+/// Recommendations generated from wizard runs
+/// 
+/// كل تشغيل للمعالج ينتج عدة توصيات مرتبة حسب الأفضلية
+/// يتم حساب التكلفة المتوقعة والنتيجة بناءً على عدة عوامل
+model Recommendation {
+  id              String   @id @default(cuid())
+  wizardRunId     String   @map("wizard_run_id") /// رقم تشغيل المعالج
+  providerId      String   @map("provider_id") /// المزود الموصى به
+  rank            Int      /// الترتيب (1 = الأفضل)
+  expectedCostMin Decimal  @db.Decimal(15, 2) @map("expected_cost_min") /// أقل تكلفة متوقعة
+  expectedCostMax Decimal  @db.Decimal(15, 2) @map("expected_cost_max") /// أقصى تكلفة متوقعة
+  breakdown       Json     @default("[]") /// تفاصيل التكلفة
+  scoreTotal      Int      @map("score_total") /// النتيجة الإجمالية (0-100)
+  scoreCost       Int      @map("score_cost") /// نتيجة التكلفة
+  scoreFit        Int      @map("score_fit") /// نتيجة التوافق
+  scoreOps        Int      @map("score_ops") /// نتيجة العمليات
+  scoreRisk       Int      @map("score_risk") /// نتيجة المخاطر
+  reasons         Json     @default("[]") /// أسباب التوصية
+  caveats         Json     @default("[]") /// تحذيرات ومحاذير
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  wizardRun WizardRun @relation(fields: [wizardRunId], references: [id], onDelete: Cascade)
+  provider  Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@map("recommendations")
+}
+
+// ==================== CRM (إدارة العملاء المحتملين) ====================
+
+/// العملاء المحتملين
+/// Sales leads captured from the wizard
+/// 
+/// يتم إنشاء Lead عندما يرسل المستخدم نموذج الاتصال بعد استخدام المعالج
+/// يمكن تتبع حالة كل Lead من جديد حتى إتمام الصفقة أو إلغائها
+model Lead {
+  id              String     @id @default(cuid())
+  wizardRunId     String?    @map("wizard_run_id") /// ربط بتشغيل المعالج
+  name            String     /// اسم العميل
+  phone           String?    /// رقم الهاتف
+  email           String?    /// البريد الإلكتروني
+  companyName     String?    @map("company_name") /// اسم الشركة
+  city            String?    /// المدينة
+  preferredContact String    @default("email") @map("preferred_contact") /// طريقة التواصل المفضلة
+  notes           String?    @db.Text /// ملاحظات
+  status          LeadStatus @default(new) /// حالة العميل
+  ownerUserId     String?    @map("owner_user_id") /// المسؤول عن المتابعة
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  wizardRun WizardRun? @relation(fields: [wizardRunId], references: [id], onDelete: SetNull)
+  owner     User?      @relation("LeadOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+
+  @@map("leads")
+}
+
+/// حالات العميل المحتمل
+/// new: جديد - لم يتم التواصل معه بعد
+/// contacted: تم التواصل - جاري المتابعة
+/// qualified: مؤهل - مهتم بالخدمة
+/// won: تم الإغلاق بنجاح
+/// lost: تم الإلغاء
+enum LeadStatus {
+  new
+  contacted
+  qualified
+  won
+  lost
+}
+
+// ==================== Audit Log (سجل التغييرات) ====================
+
+/// سجل التغييرات على البيانات
+/// Audit log for tracking all data changes
+model AuditLog {
+  id        String   @id @default(cuid())
+  tableName String   @map("table_name") /// اسم الجدول
+  recordId  String   @map("record_id")
+  action    String
+  oldValues Json?    @map("old_values")
+  newValues Json?    @map("new_values")
+  userId    String?  @map("user_id")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @db.Text @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_log")
+}

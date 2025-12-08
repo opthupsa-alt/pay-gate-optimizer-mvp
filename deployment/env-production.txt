@@ -1,0 +1,47 @@
+# ==========================================
+# PayGate Optimizer - Production Environment
+# ==========================================
+# انسخ هذا الملف إلى .env في جذر المشروع
+# Copy this file to .env in project root
+# الاسم المطلوب: .env
+# Required name: .env
+
+# ==========================================
+# إعدادات أساسية - Basic Settings
+# ==========================================
+NODE_ENV=production
+
+# وضع العرض (true = بدون قاعدة بيانات)
+# Demo mode (true = no database required)
+DEMO_MODE=true
+
+# ==========================================
+# إعدادات المصادقة - Authentication
+# ==========================================
+
+# مفتاح التشفير (غيّره لمفتاح عشوائي!)
+# Encryption key (change to random key!)
+# توليد: openssl rand -base64 32
+NEXTAUTH_SECRET=CHANGE-THIS-TO-A-RANDOM-32-CHARACTER-SECRET-KEY
+
+# رابط الموقع (غيّره لرابط موقعك)
+# Your website URL (change to your domain)
+NEXTAUTH_URL=https://yourdomain.com
+
+# ==========================================
+# قاعدة البيانات (اختياري)
+# Database (Optional)
+# ==========================================
+# فعّل فقط إذا كنت تريد حفظ البيانات
+# Enable only if you want to save data
+
+# DATABASE_URL=mysql://user:password@localhost:3306/paygate
+
+# ==========================================
+# إعدادات إضافية (اختياري)
+# Additional Settings (Optional)
+# ==========================================
+
+# منفذ التطبيق
+# PORT=3000
+
