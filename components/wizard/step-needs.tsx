@@ -3,6 +3,7 @@
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { translations } from "@/lib/translations"
+import { cn } from "@/lib/utils"
 import type { WizardNeeds } from "@/lib/types"
 import { RefreshCcw, CreditCard, Globe, ShoppingBag, Zap, Smartphone, Users, Wallet } from "lucide-react"
 
@@ -14,6 +15,7 @@ interface StepNeedsProps {
 
 export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
   const t = translations[locale].wizard.fields
+  const isRTL = locale === "ar"
 
   const handleToggle = (key: keyof WizardNeeds) => {
     onNeedsChange({ ...needs, [key]: !needs[key] })
@@ -47,88 +49,121 @@ export function StepNeeds({ needs, onNeedsChange, locale }: StepNeedsProps) {
     { key: "international_customers" as const, label: locale === "ar" ? "عملاء دوليون" : "International Customers", icon: Users, description: locale === "ar" ? "استهداف عملاء من خارج السعودية" : "Target customers outside Saudi Arabia" },
   ]
 
+  // Define feature type for reusability
+  type FeatureType = {
+    key: keyof WizardNeeds
+    label: string
+    icon: typeof RefreshCcw
+    description: string
+  }
+
+  const FeatureItem = ({ feature, compact = false }: { feature: FeatureType, compact?: boolean }) => {
+    const isActive = needs[feature.key] || false
+    
+    return (
+      <div 
+        className={cn(
+          "flex items-center justify-between rounded-lg border transition-all duration-200 cursor-pointer",
+          compact ? "p-3" : "p-4",
+          isActive 
+            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" 
+            : "hover:bg-muted/50 hover:border-muted-foreground/30"
+        )}
+        onClick={() => handleToggle(feature.key)}
+      >
+        <div className={cn("flex items-start gap-3", compact && "items-center gap-2")}>
+          <feature.icon className={cn(
+            "shrink-0",
+            compact ? "h-4 w-4" : "h-5 w-5 mt-0.5",
+            isActive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
+          )} />
+          <div>
+            <span className={cn(
+              "font-medium block",
+              compact && "text-sm",
+              isRTL && "font-arabic",
+              isActive && "text-emerald-800 dark:text-emerald-200"
+            )}>
+              {feature.label}
+            </span>
+            {!compact && (
+              <span className={cn(
+                "text-sm",
+                isRTL && "font-arabic",
+                isActive ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
+              )}>
+                {feature.description}
+              </span>
+            )}
+          </div>
+        </div>
+        <Switch 
+          checked={isActive} 
+          onCheckedChange={() => handleToggle(feature.key)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Core Features */}
       <div>
-        <Label className="text-base font-semibold mb-3 block">
+        <Label className={cn(
+          "text-base font-semibold mb-3 block",
+          isRTL && "font-arabic"
+        )}>
           {locale === "ar" ? "الميزات الأساسية" : "Core Features"}
         </Label>
         <div className="space-y-3">
           {coreFeatures.map((feature) => (
-            <div key={feature.key} className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
-              <div className="flex items-start gap-3">
-                <feature.icon className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium block">{feature.label}</span>
-                  <span className="text-sm text-muted-foreground">{feature.description}</span>
-                </div>
-              </div>
-              <Switch checked={needs[feature.key] || false} onCheckedChange={() => handleToggle(feature.key)} />
-            </div>
+            <FeatureItem key={feature.key} feature={feature} />
           ))}
         </div>
       </div>
 
       {/* Platform Integrations */}
       <div>
-        <Label className="text-base font-semibold mb-3 block">
+        <Label className={cn(
+          "text-base font-semibold mb-3 block",
+          isRTL && "font-arabic"
+        )}>
           {locale === "ar" ? "تكاملات المنصات" : "Platform Integrations"}
         </Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {platformFeatures.map((feature) => (
-            <div key={feature.key} className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-2">
-                <feature.icon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">{feature.label}</span>
-              </div>
-              <Switch 
-                checked={needs[feature.key] || false} 
-                onCheckedChange={() => handleToggle(feature.key)} 
-              />
-            </div>
+            <FeatureItem key={feature.key} feature={feature} compact />
           ))}
         </div>
       </div>
 
       {/* Payment Methods */}
       <div>
-        <Label className="text-base font-semibold mb-3 block">
+        <Label className={cn(
+          "text-base font-semibold mb-3 block",
+          isRTL && "font-arabic"
+        )}>
           {locale === "ar" ? "طرق الدفع المطلوبة" : "Required Payment Methods"}
         </Label>
         <div className="space-y-3">
           {paymentFeatures.map((feature) => (
-            <div key={feature.key} className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
-              <div className="flex items-start gap-3">
-                <feature.icon className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium block">{feature.label}</span>
-                  <span className="text-sm text-muted-foreground">{feature.description}</span>
-                </div>
-              </div>
-              <Switch checked={needs[feature.key] || false} onCheckedChange={() => handleToggle(feature.key)} />
-            </div>
+            <FeatureItem key={feature.key} feature={feature} />
           ))}
         </div>
       </div>
 
       {/* International */}
       <div>
-        <Label className="text-base font-semibold mb-3 block">
+        <Label className={cn(
+          "text-base font-semibold mb-3 block",
+          isRTL && "font-arabic"
+        )}>
           {locale === "ar" ? "العملاء الدوليون" : "International"}
         </Label>
         <div className="space-y-3">
           {internationalFeatures.map((feature) => (
-            <div key={feature.key} className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
-              <div className="flex items-start gap-3">
-                <feature.icon className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium block">{feature.label}</span>
-                  <span className="text-sm text-muted-foreground">{feature.description}</span>
-                </div>
-              </div>
-              <Switch checked={needs[feature.key] || false} onCheckedChange={() => handleToggle(feature.key)} />
-            </div>
+            <FeatureItem key={feature.key} feature={feature} />
           ))}
         </div>
       </div>

@@ -20,13 +20,17 @@ export function WizardProgress({ currentStep, totalSteps, locale }: WizardProgre
           <span className={cn(isRTL && "font-arabic")}>
             {isRTL ? `الخطوة ${currentStep} من ${totalSteps}` : `Step ${currentStep} of ${totalSteps}`}
           </span>
-          <span>{Math.round((currentStep / totalSteps) * 100)}%</span>
+          <span className="font-medium text-emerald-600 dark:text-emerald-400">
+            {Math.round((currentStep / totalSteps) * 100)}%
+          </span>
         </div>
-        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+        <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden shadow-inner">
           <div 
-            className="h-full bg-primary transition-all duration-300 ease-out rounded-full"
+            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-500 ease-out rounded-full relative"
             style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-          />
+          >
+            <div className="absolute inset-0 bg-white/20 animate-pulse" />
+          </div>
         </div>
       </div>
 
@@ -36,21 +40,23 @@ export function WizardProgress({ currentStep, totalSteps, locale }: WizardProgre
           <div key={step} className="flex items-center">
             <div
               className={cn(
-                "flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border-2 text-xs md:text-sm font-medium transition-colors shrink-0",
+                "flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border-2 text-xs md:text-sm font-medium transition-all duration-300 shrink-0",
                 step < currentStep
-                  ? "border-primary bg-primary text-primary-foreground"
+                  ? "border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
                   : step === currentStep
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-muted-foreground/30 text-muted-foreground",
+                    ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 ring-4 ring-emerald-500/20"
+                    : "border-muted-foreground/30 text-muted-foreground bg-background",
               )}
             >
-              {step < currentStep ? <Check className="h-4 w-4 md:h-5 md:w-5" /> : step}
+              {step < currentStep ? <Check className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.5} /> : step}
             </div>
             {step < totalSteps && (
               <div
                 className={cn(
-                  "h-0.5 w-4 sm:w-6 md:w-10 lg:w-16 xl:w-20 transition-colors",
-                  step < currentStep ? "bg-primary" : "bg-muted-foreground/30",
+                  "h-0.5 w-4 sm:w-6 md:w-10 lg:w-16 xl:w-20 transition-all duration-300",
+                  step < currentStep 
+                    ? "bg-emerald-500" 
+                    : "bg-muted-foreground/20",
                 )}
               />
             )}

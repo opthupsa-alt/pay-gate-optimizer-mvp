@@ -394,6 +394,20 @@
     }
   }
   
+  /* Skeleton Shimmer Animation - for loading states */
+  .animate-shimmer {
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes skeletonShimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  
   /* Fade In Up Animation */
   .fade-in-up {
     animation: fadeInUp 0.5s ease-out forwards;
