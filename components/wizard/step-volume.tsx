@@ -43,13 +43,13 @@ export function StepVolume({ monthlyGmv, txCount, onGmvChange, onTxCountChange, 
             placeholder="50000"
             dir="ltr"
             className={cn(
-              "h-11 sm:h-10 text-sm sm:text-base ps-4 pe-10 transition-colors",
+              "h-11 sm:h-10 text-sm sm:text-base pl-4 pr-10 transition-colors",
               gmvTouched && !gmvValid && "border-destructive focus-visible:ring-destructive/20",
               gmvTouched && gmvValid && "border-emerald-500 focus-visible:ring-emerald-500/20"
             )}
           />
           {gmvTouched && (
-            <div className="absolute end-3 top-1/2 -translate-y-1/2">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
               {gmvValid ? (
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               ) : (
@@ -86,13 +86,13 @@ export function StepVolume({ monthlyGmv, txCount, onGmvChange, onTxCountChange, 
             placeholder="500"
             dir="ltr"
             className={cn(
-              "h-11 sm:h-10 text-sm sm:text-base ps-4 pe-10 transition-colors",
+              "h-11 sm:h-10 text-sm sm:text-base pl-4 pr-10 transition-colors",
               txTouched && !txValid && "border-destructive focus-visible:ring-destructive/20",
               txTouched && txValid && "border-emerald-500 focus-visible:ring-emerald-500/20"
             )}
           />
           {txTouched && (
-            <div className="absolute end-3 top-1/2 -translate-y-1/2">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
               {txValid ? (
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               ) : (

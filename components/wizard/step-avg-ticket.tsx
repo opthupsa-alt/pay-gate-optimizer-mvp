@@ -42,12 +42,12 @@ export function StepAvgTicket({ avgTicket, monthlyGmv, txCount, onAvgTicketChang
             placeholder={String(calculatedAvg || 100)}
             dir="ltr"
             className={cn(
-              "h-11 sm:h-10 text-sm sm:text-base ps-4 pe-10 transition-colors",
+              "h-11 sm:h-10 text-sm sm:text-base pl-4 pr-10 transition-colors",
               isTouched && isValid && "border-emerald-500 focus-visible:ring-emerald-500/20"
             )}
           />
           {isTouched && isValid && (
-            <div className="absolute end-3 top-1/2 -translate-y-1/2">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             </div>
           )}
