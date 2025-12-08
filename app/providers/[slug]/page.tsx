@@ -378,13 +378,13 @@ export default function ProviderDetailPage({ params }: PageProps) {
 
                           {review.highlights_positive && review.highlights_positive.length > 0 && (
                             <div className="mb-3">
-                              <div className="text-sm font-medium text-green-600 mb-2 flex items-center gap-1">
+                              <div className="text-sm font-medium text-emerald-600 mb-2 flex items-center gap-1">
                                 <CheckCircle className="h-4 w-4" />
                                 {locale === "ar" ? "نقاط القوة" : "Strengths"}
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 {review.highlights_positive.map((highlight, i) => (
-                                  <Badge key={i} variant="secondary" className="bg-green-50 text-green-700">
+                                  <Badge key={i} variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                                     {highlight}
                                   </Badge>
                                 ))}
@@ -454,7 +454,7 @@ export default function ProviderDetailPage({ params }: PageProps) {
                                   <Badge 
                                     variant="outline" 
                                     className={`ms-2 text-xs ${
-                                      source.confidence_level === "high" ? "border-green-500 text-green-600" :
+                                      source.confidence_level === "high" ? "border-emerald-500 text-emerald-600" :
                                       source.confidence_level === "medium" ? "border-yellow-500 text-yellow-600" :
                                       "border-red-500 text-red-600"
                                     }`}
@@ -504,14 +504,14 @@ export default function ProviderDetailPage({ params }: PageProps) {
             <CardContent className="space-y-4">
               {provider.pros_ar && provider.pros_ar.length > 0 && (
                 <div>
-                  <div className="text-sm font-medium text-green-600 mb-2 flex items-center gap-1">
+                  <div className="text-sm font-medium text-emerald-600 mb-2 flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" />
                     {locale === "ar" ? "المميزات" : "Pros"}
                   </div>
                   <ul className="space-y-2">
                     {(locale === "ar" ? provider.pros_ar : provider.pros_en)?.map((pro, i) => (
                       <li key={i} className="text-sm flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
                         {pro}
                       </li>
                     ))}

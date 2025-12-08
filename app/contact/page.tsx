@@ -105,8 +105,8 @@ export default function ContactPage() {
     return (
       <div className="container py-16">
         <div className="mx-auto max-w-md text-center">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+            <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
           </div>
           <h1 className="mb-4 text-2xl font-bold">{t.form.success}</h1>
           <p className="mb-8 text-muted-foreground">{t.form.successDesc}</p>

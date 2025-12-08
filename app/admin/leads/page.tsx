@@ -133,10 +133,10 @@ export default function LeadsPage() {
   }
 
   const statusConfig: Record<Lead["status"], { label: string; color: string; icon: typeof CheckCircle }> = {
-    new: { label: "جديد", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", icon: Clock },
+    new: { label: "جديد", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400", icon: Clock },
     contacted: { label: "تم التواصل", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", icon: Phone },
     qualified: { label: "مؤهل", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400", icon: CheckCircle },
-    won: { label: "تم الفوز", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: CheckCircle },
+    won: { label: "تم الفوز", color: "bg-emerald-200 text-emerald-900 dark:bg-emerald-800/30 dark:text-emerald-300", icon: CheckCircle },
     lost: { label: "خسارة", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: XCircle },
   }
 

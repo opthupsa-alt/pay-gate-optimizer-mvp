@@ -67,7 +67,7 @@ export default function SignUpPage() {
       <div className="container flex min-h-[calc(100vh-4rem)] items-center justify-center py-8">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
-            <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
+            <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500" />
             <h2 className="mt-4 text-2xl font-bold">تم إنشاء الحساب بنجاح!</h2>
             <p className="mt-2 text-muted-foreground">
               جاري تحويلك لصفحة تسجيل الدخول...
@@ -147,7 +147,7 @@ export default function SignUpPage() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
                   جاري إنشاء الحساب...
                 </>
               ) : (

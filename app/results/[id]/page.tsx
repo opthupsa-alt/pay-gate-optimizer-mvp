@@ -324,7 +324,7 @@ export default function ResultsPage() {
       case 2:
         return <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
       default:
-        return <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+        return <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" />
     }
   }
 
@@ -337,7 +337,7 @@ export default function ResultsPage() {
       case 2:
         return "border-amber-600 bg-amber-50 dark:bg-amber-950/30"
       default:
-        return "border-blue-300 bg-blue-50 dark:bg-blue-950/30"
+        return "border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30"
     }
   }
   
@@ -408,7 +408,7 @@ export default function ResultsPage() {
           onClick={handleShare}
         >
           {copied ? (
-            <Check className="h-4 w-4 me-1 sm:me-2 text-green-500" />
+            <Check className="h-4 w-4 me-1 sm:me-2 text-emerald-500" />
           ) : (
             <Share2 className="h-4 w-4 me-1 sm:me-2" />
           )}
@@ -552,13 +552,13 @@ export default function ResultsPage() {
                 {rec.reasons.length > 0 && (
                   <div>
                     <h4 className="mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base font-semibold">
-                      <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                      <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
                       {t.reasons}
                     </h4>
                     <ul className="space-y-1.5 sm:space-y-2">
                       {rec.reasons.map((reason, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
-                          <Zap className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 text-green-500 shrink-0" />
+                          <Zap className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 text-emerald-500 shrink-0" />
                           <span>{reason}</span>
                         </li>
                       ))}

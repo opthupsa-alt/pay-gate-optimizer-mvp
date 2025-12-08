@@ -4,111 +4,111 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PayGate Optimizer - Premium Design System
+   PayGate Optimizer - Premium Design System (Emerald Theme)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
   /* Premium Color Palette - Light Mode */
-  --background: oklch(0.99 0.002 280);
-  --foreground: oklch(0.15 0.02 280);
+  --background: oklch(0.99 0.002 155);
+  --foreground: oklch(0.15 0.02 155);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   
-  /* Premium Blue/Indigo Primary */
-  --primary: oklch(0.45 0.18 265);
+  /* Premium Emerald Primary - oklch equivalent of emerald-600 */
+  --primary: oklch(0.596 0.145 163.225);
   --primary-foreground: oklch(0.99 0 0);
   
-  --secondary: oklch(0.96 0.01 280);
-  --secondary-foreground: oklch(0.25 0.02 280);
-  --muted: oklch(0.96 0.01 280);
-  --muted-foreground: oklch(0.50 0.02 280);
+  --secondary: oklch(0.96 0.01 155);
+  --secondary-foreground: oklch(0.25 0.02 155);
+  --muted: oklch(0.96 0.01 155);
+  --muted-foreground: oklch(0.50 0.02 155);
   
-  /* Premium Accent - Gold/Amber */
-  --accent: oklch(0.75 0.15 70);
-  --accent-foreground: oklch(0.20 0.05 70);
+  /* Accent - Lighter Emerald for hover states */
+  --accent: oklch(0.95 0.05 163);
+  --accent-foreground: oklch(0.30 0.08 163);
   
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.95 0.02 25);
-  --border: oklch(0.90 0.01 280);
-  --input: oklch(0.92 0.01 280);
-  --ring: oklch(0.45 0.18 265);
+  --border: oklch(0.90 0.02 155);
+  --input: oklch(0.92 0.02 155);
+  --ring: oklch(0.596 0.145 163.225);
   
-  /* Premium Chart Colors */
-  --chart-1: oklch(0.55 0.20 265);
-  --chart-2: oklch(0.65 0.15 165);
-  --chart-3: oklch(0.75 0.15 70);
-  --chart-4: oklch(0.60 0.20 320);
-  --chart-5: oklch(0.55 0.18 30);
+  /* Chart Colors - Emerald-based palette */
+  --chart-1: oklch(0.596 0.145 163.225);
+  --chart-2: oklch(0.65 0.12 165);
+  --chart-3: oklch(0.75 0.10 170);
+  --chart-4: oklch(0.50 0.12 158);
+  --chart-5: oklch(0.45 0.10 160);
   
   --radius: 0.75rem;
   
   /* Sidebar */
-  --sidebar: oklch(0.985 0.005 280);
-  --sidebar-foreground: oklch(0.15 0.02 280);
-  --sidebar-primary: oklch(0.45 0.18 265);
+  --sidebar: oklch(0.985 0.008 163);
+  --sidebar-foreground: oklch(0.15 0.02 155);
+  --sidebar-primary: oklch(0.596 0.145 163.225);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.94 0.02 280);
-  --sidebar-accent-foreground: oklch(0.25 0.02 280);
-  --sidebar-border: oklch(0.90 0.01 280);
-  --sidebar-ring: oklch(0.45 0.18 265);
+  --sidebar-accent: oklch(0.94 0.03 163);
+  --sidebar-accent-foreground: oklch(0.25 0.02 155);
+  --sidebar-border: oklch(0.90 0.02 155);
+  --sidebar-ring: oklch(0.596 0.145 163.225);
   
-  /* Premium Gradients */
-  --gradient-start: oklch(0.45 0.18 265);
-  --gradient-end: oklch(0.55 0.20 285);
+  /* Premium Gradients - Emerald */
+  --gradient-start: oklch(0.596 0.145 163.225);
+  --gradient-end: oklch(0.508 0.118 165.612);
   --gold-gradient-start: oklch(0.80 0.12 80);
   --gold-gradient-end: oklch(0.70 0.15 50);
 }
 
 .dark {
   /* Premium Color Palette - Dark Mode */
-  --background: oklch(0.12 0.02 280);
-  --foreground: oklch(0.95 0.01 280);
-  --card: oklch(0.16 0.02 280);
-  --card-foreground: oklch(0.95 0.01 280);
-  --popover: oklch(0.14 0.02 280);
-  --popover-foreground: oklch(0.95 0.01 280);
+  --background: oklch(0.12 0.015 155);
+  --foreground: oklch(0.95 0.01 155);
+  --card: oklch(0.16 0.015 155);
+  --card-foreground: oklch(0.95 0.01 155);
+  --popover: oklch(0.14 0.015 155);
+  --popover-foreground: oklch(0.95 0.01 155);
   
-  /* Premium Blue/Indigo Primary - Dark Mode */
-  --primary: oklch(0.65 0.20 265);
-  --primary-foreground: oklch(0.12 0.02 280);
+  /* Premium Emerald Primary - Dark Mode (emerald-500 for better contrast) */
+  --primary: oklch(0.696 0.17 162.48);
+  --primary-foreground: oklch(0.12 0.02 155);
   
-  --secondary: oklch(0.22 0.02 280);
-  --secondary-foreground: oklch(0.95 0.01 280);
-  --muted: oklch(0.22 0.02 280);
-  --muted-foreground: oklch(0.65 0.02 280);
+  --secondary: oklch(0.22 0.015 155);
+  --secondary-foreground: oklch(0.95 0.01 155);
+  --muted: oklch(0.22 0.015 155);
+  --muted-foreground: oklch(0.65 0.02 155);
   
-  /* Premium Accent - Gold/Amber - Dark Mode */
-  --accent: oklch(0.70 0.15 70);
-  --accent-foreground: oklch(0.15 0.05 70);
+  /* Accent - Dark mode */
+  --accent: oklch(0.25 0.04 163);
+  --accent-foreground: oklch(0.85 0.08 163);
   
   --destructive: oklch(0.45 0.18 25);
   --destructive-foreground: oklch(0.90 0.05 25);
-  --border: oklch(0.25 0.02 280);
-  --input: oklch(0.22 0.02 280);
-  --ring: oklch(0.65 0.20 265);
+  --border: oklch(0.25 0.015 155);
+  --input: oklch(0.22 0.015 155);
+  --ring: oklch(0.696 0.17 162.48);
   
-  /* Premium Chart Colors - Dark Mode */
-  --chart-1: oklch(0.65 0.22 265);
-  --chart-2: oklch(0.70 0.18 165);
-  --chart-3: oklch(0.78 0.16 70);
-  --chart-4: oklch(0.68 0.22 320);
-  --chart-5: oklch(0.65 0.20 30);
+  /* Chart Colors - Dark Mode */
+  --chart-1: oklch(0.696 0.17 162.48);
+  --chart-2: oklch(0.70 0.14 165);
+  --chart-3: oklch(0.78 0.12 170);
+  --chart-4: oklch(0.60 0.14 158);
+  --chart-5: oklch(0.55 0.12 160);
   
   /* Sidebar - Dark Mode */
-  --sidebar: oklch(0.14 0.02 280);
-  --sidebar-foreground: oklch(0.95 0.01 280);
-  --sidebar-primary: oklch(0.65 0.20 265);
-  --sidebar-primary-foreground: oklch(0.12 0.02 280);
-  --sidebar-accent: oklch(0.22 0.02 280);
-  --sidebar-accent-foreground: oklch(0.95 0.01 280);
-  --sidebar-border: oklch(0.25 0.02 280);
-  --sidebar-ring: oklch(0.65 0.20 265);
+  --sidebar: oklch(0.14 0.015 155);
+  --sidebar-foreground: oklch(0.95 0.01 155);
+  --sidebar-primary: oklch(0.696 0.17 162.48);
+  --sidebar-primary-foreground: oklch(0.12 0.02 155);
+  --sidebar-accent: oklch(0.22 0.02 163);
+  --sidebar-accent-foreground: oklch(0.95 0.01 155);
+  --sidebar-border: oklch(0.25 0.015 155);
+  --sidebar-ring: oklch(0.696 0.17 162.48);
   
   /* Premium Gradients - Dark Mode */
-  --gradient-start: oklch(0.55 0.20 265);
-  --gradient-end: oklch(0.65 0.22 285);
+  --gradient-start: oklch(0.696 0.17 162.48);
+  --gradient-end: oklch(0.596 0.145 163.225);
 }
 
 @theme inline {

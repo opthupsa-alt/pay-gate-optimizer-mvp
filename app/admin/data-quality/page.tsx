@@ -72,7 +72,7 @@ export default function DataQualityPage() {
       case "medium":
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />
       case "low":
-        return <CheckCircle className="h-4 w-4 text-blue-500" />
+        return <CheckCircle className="h-4 w-4 text-emerald-500" />
       default:
         return null
     }
@@ -189,24 +189,24 @@ export default function DataQualityPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-2xl font-bold text-blue-600">{summary.low_severity}</div>
+                  <div className="text-2xl font-bold text-emerald-600">{summary.low_severity}</div>
                   <div className="text-sm text-muted-foreground">مشاكل منخفضة</div>
                 </div>
-                <CheckCircle className="h-8 w-8 text-blue-200" />
+                <CheckCircle className="h-8 w-8 text-emerald-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-2xl font-bold text-emerald-600">
                     {summary.total_issues === 0 ? "100%" : `${Math.round((1 - summary.total_issues / 100) * 100)}%`}
                   </div>
                   <div className="text-sm text-muted-foreground">جودة البيانات</div>
                 </div>
-                <CheckCircle className="h-8 w-8 text-green-200" />
+                <CheckCircle className="h-8 w-8 text-emerald-200" />
               </div>
             </CardContent>
           </Card>
@@ -237,10 +237,10 @@ export default function DataQualityPage() {
 
       {/* No Issues State */}
       {issues.length === 0 && (
-        <Alert className="bg-green-50 border-green-500 dark:bg-green-950/30">
-          <CheckCircle className="h-4 w-4 text-green-500" />
-          <AlertTitle className="text-green-700">جودة البيانات ممتازة!</AlertTitle>
-          <AlertDescription className="text-green-600">
+        <Alert className="bg-emerald-50 border-emerald-500 dark:bg-emerald-950/30">
+          <CheckCircle className="h-4 w-4 text-emerald-500" />
+          <AlertTitle className="text-emerald-700 dark:text-emerald-300">جودة البيانات ممتازة!</AlertTitle>
+          <AlertDescription className="text-emerald-600 dark:text-emerald-400">
             لا توجد مشاكل في جودة البيانات حالياً. استمر في تحديث البيانات بانتظام.
           </AlertDescription>
         </Alert>

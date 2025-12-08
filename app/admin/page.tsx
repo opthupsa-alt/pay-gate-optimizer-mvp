@@ -94,10 +94,10 @@ export default async function AdminDashboard() {
   ]
 
   const statusColors: Record<string, string> = {
-    new: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    new: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
     contacted: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-    qualified: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-    won: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+    qualified: "bg-emerald-200 text-emerald-900 dark:bg-emerald-800/30 dark:text-emerald-300",
+    won: "bg-emerald-300 text-emerald-900 dark:bg-emerald-700/30 dark:text-emerald-200",
     lost: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   }
 
@@ -122,11 +122,11 @@ export default async function AdminDashboard() {
               <div className="text-2xl font-bold">{stat.value}</div>
               <div className="flex items-center text-xs">
                 {stat.trend === "up" ? (
-                  <ArrowUpRight className="h-3 w-3 text-green-500 me-1" />
+                  <ArrowUpRight className="h-3 w-3 text-emerald-500 me-1" />
                 ) : stat.trend === "down" ? (
                   <ArrowDownRight className="h-3 w-3 text-red-500 me-1" />
                 ) : null}
-                <span className={stat.trend === "up" ? "text-green-500" : stat.trend === "down" ? "text-red-500" : "text-muted-foreground"}>
+                <span className={stat.trend === "up" ? "text-emerald-500" : stat.trend === "down" ? "text-red-500" : "text-muted-foreground"}>
                   {stat.change}
                 </span>
                 <span className="text-muted-foreground ms-1">{t.vsLastMonth}</span>

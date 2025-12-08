@@ -24,8 +24,8 @@ export function StepPaymentMix({ paymentMix, onPaymentMixChange, locale }: StepP
   }
 
   const methods = [
-    { key: "mada" as const, label: t.mada, color: "bg-emerald-500" },
-    { key: "visa_mc" as const, label: t.visaMc, color: "bg-blue-500" },
+    { key: "mada" as const, label: t.mada, color: "bg-emerald-600" },
+    { key: "visa_mc" as const, label: t.visaMc, color: "bg-emerald-400" },
     { key: "apple_pay" as const, label: t.applePay, color: "bg-zinc-800" },
     { key: "google_pay" as const, label: t.googlePay, color: "bg-amber-500" },
     { key: "other" as const, label: t.other, color: "bg-gray-400" },

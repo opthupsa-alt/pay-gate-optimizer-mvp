@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
               <>
                 <div className="text-2xl font-bold">{overview.totalComparisons.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className={overview.comparisonsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}>
+                  <span className={overview.comparisonsGrowth >= 0 ? 'text-emerald-500' : 'text-red-500'}>
                     {overview.comparisonsGrowth >= 0 ? '+' : ''}{overview.comparisonsGrowth}%
                   </span> من الشهر السابق
                 </p>
@@ -120,7 +120,7 @@ export default function AnalyticsPage() {
               <>
                 <div className="text-2xl font-bold">{overview.totalLeads.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className={overview.leadsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}>
+                  <span className={overview.leadsGrowth >= 0 ? 'text-emerald-500' : 'text-red-500'}>
                     {overview.leadsGrowth >= 0 ? '+' : ''}{overview.leadsGrowth}%
                   </span> من الشهر السابق
                 </p>
@@ -202,7 +202,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="h-2 w-24 rounded-full bg-muted overflow-hidden">
                         <div 
-                          className="h-full bg-green-500 rounded-full"
+                          className="h-full bg-emerald-500 rounded-full"
                           style={{ width: `${(item.leads / 40) * 100}%` }}
                         />
                       </div>
@@ -263,7 +263,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
                       <div 
-                        className="h-full bg-green-500 rounded-full transition-all"
+                        className="h-full bg-emerald-500 rounded-full transition-all"
                         style={{ width: `${item.percentage}%` }}
                       />
                     </div>
@@ -293,7 +293,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
                       <div 
-                        className="h-full bg-blue-500 rounded-full transition-all"
+                        className="h-full bg-emerald-500 rounded-full transition-all"
                         style={{ width: `${item.percentage}%` }}
                       />
                     </div>

@@ -200,7 +200,7 @@ export function ProfileForm({ user, locale }: ProfileFormProps) {
               <Separator />
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t.emailVerified}</span>
-                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                   ✓
                 </Badge>
               </div>

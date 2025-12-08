@@ -288,7 +288,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">المجموع الإجمالي</p>
-                  <p className={`text-sm ${isWeightValid ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-sm ${isWeightValid ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600'}`}>
                     {totalWeight}% {isWeightValid ? '✓' : '(يجب أن يساوي 100%)'}
                   </p>
                 </div>

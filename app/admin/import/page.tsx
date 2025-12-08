@@ -328,13 +328,13 @@ export default function ImportPage() {
 
       {/* Result */}
       {result && (
-        <Card className={result.success ? "border-green-500" : "border-red-500"}>
+        <Card className={result.success ? "border-emerald-500" : "border-red-500"}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {result.success ? (
                 <>
-                  <Check className="h-5 w-5 text-green-500" />
-                  <span className="text-green-600">نجح الاستيراد</span>
+                  <Check className="h-5 w-5 text-emerald-500" />
+                  <span className="text-emerald-600 dark:text-emerald-400">نجح الاستيراد</span>
                 </>
               ) : (
                 <>
@@ -346,8 +346,8 @@ export default function ImportPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{result.imported}</div>
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{result.imported}</div>
                 <div className="text-sm text-muted-foreground">تم استيرادهم</div>
               </div>
               <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
