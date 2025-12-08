@@ -515,13 +515,13 @@ function generateCaveats(
 
   if (setupFee > 0) {
     caveats.push(
-      isAr ? `رسوم تسجيل: ${setupFee} ر.س` : `Setup fee: ${setupFee} SAR`
+      isAr ? `رسوم تسجيل: ${setupFee} ﷼` : `Setup fee: ${setupFee} ﷼`
     )
   }
 
   if (monthlyFee > 0) {
     caveats.push(
-      isAr ? `رسوم شهرية: ${monthlyFee} ر.س` : `Monthly fee: ${monthlyFee} SAR`
+      isAr ? `رسوم شهرية: ${monthlyFee} ﷼` : `Monthly fee: ${monthlyFee} ﷼`
     )
   }
 

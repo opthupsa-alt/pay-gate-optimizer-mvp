@@ -642,7 +642,7 @@ const translations = {
     recommendations: "التوصيات",
     ranks: ["الأفضل", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع", "الخيار الخامس"],
     monthlyCost: "التكلفة الشهرية المتوقعة",
-    currency: "ر.س",
+    currency: "﷼",
     scores: {
       total: "الإجمالي",
       cost: "التكلفة",
@@ -670,7 +670,7 @@ const translations = {
     recommendations: "Recommendations",
     ranks: ["Best Choice", "Second Option", "Third Option", "Fourth Option", "Fifth Option"],
     monthlyCost: "Expected Monthly Cost",
-    currency: "SAR",
+    currency: "﷼",
     scores: {
       total: "Total",
       cost: "Cost",

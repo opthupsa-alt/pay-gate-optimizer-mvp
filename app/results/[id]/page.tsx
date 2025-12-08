@@ -250,7 +250,7 @@ export default function ResultsPage() {
       rankN: "الخيار رقم",
       monthlyCost: "التكلفة الشهرية المتوقعة",
       to: "إلى",
-      sar: "ر.س",
+      sar: "﷼",
       scores: {
         total: "التقييم الإجمالي",
         cost: "التكلفة",

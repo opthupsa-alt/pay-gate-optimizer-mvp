@@ -417,8 +417,8 @@ function generateCaveats(provider: any, locale: string): string[] {
   const isAr = locale === "ar"
   const setupFee = Number(provider.setupFee) || 0
   const monthlyFee = Number(provider.monthlyFee) || 0
-  if (setupFee > 0) caveats.push(isAr ? `رسوم تسجيل: ${setupFee} ر.س` : `Setup fee: ${setupFee} SAR`)
-  if (monthlyFee > 0) caveats.push(isAr ? `رسوم شهرية: ${monthlyFee} ر.س` : `Monthly fee: ${monthlyFee} SAR`)
+  if (setupFee > 0) caveats.push(isAr ? `رسوم تسجيل: ${setupFee} ﷼` : `Setup fee: ${setupFee} ﷼`)
+  if (monthlyFee > 0) caveats.push(isAr ? `رسوم شهرية: ${monthlyFee} ﷼` : `Monthly fee: ${monthlyFee} ﷼`)
   return caveats.slice(0, 3)
 }
 
