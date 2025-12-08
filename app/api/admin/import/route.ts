@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import prisma from "@/lib/db"
+import { getCurrentUser } from "@/lib/auth"
 import type { ProviderImportRow, ImportResult } from "@/lib/types"
+import { IntegrationPlatform, ReviewPlatform } from "@prisma/client"
 
 export const dynamic = "force-dynamic"
 
@@ -59,21 +61,13 @@ function parseCSV(csvString: string): Record<string, unknown>[] {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    
     // Check admin role
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()
-
-    if (profile?.role !== "admin") {
+    if (user.role !== "admin") {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
@@ -138,104 +132,93 @@ export async function POST(request: NextRequest) {
       
       try {
         // Check if provider exists
-        const { data: existingProvider } = await supabase
-          .from("providers")
-          .select("id")
-          .eq("slug", row.provider_slug)
-          .single()
+        const existingProvider = await prisma.provider.findUnique({
+          where: { slug: row.provider_slug },
+        })
 
         let providerId: string
 
         if (existingProvider) {
           // Update existing provider
-          const { error: updateError } = await supabase
-            .from("providers")
-            .update({
-              name_ar: row.name_ar,
-              name_en: row.name_en,
-              website_url: row.website_url || null,
-              setup_fee: row.setup_fee || 0,
-              monthly_fee: row.monthly_fee || 0,
-              activation_time_days_min: row.activation_min || 1,
-              activation_time_days_max: row.activation_max || 7,
-              settlement_days_min: row.settlement_min || 1,
-              settlement_days_max: row.settlement_max || 7,
-              pricing_url: row.official_pricing_url || null,
-              docs_url: row.docs_url || null,
-              terms_url: row.terms_url || null,
-              last_verified_at: row.last_verified_at || new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", existingProvider.id)
-
-          if (updateError) throw updateError
+          await prisma.provider.update({
+            where: { id: existingProvider.id },
+            data: {
+              nameAr: row.name_ar,
+              nameEn: row.name_en,
+              websiteUrl: row.website_url || null,
+              setupFee: row.setup_fee || 0,
+              monthlyFee: row.monthly_fee || 0,
+              activationTimeDaysMin: row.activation_min || 1,
+              activationTimeDaysMax: row.activation_max || 7,
+              settlementDaysMin: row.settlement_min || 1,
+              settlementDaysMax: row.settlement_max || 7,
+              pricingUrl: row.official_pricing_url || null,
+              docsUrl: row.docs_url || null,
+              termsUrl: row.terms_url || null,
+              lastVerifiedAt: row.last_verified_at ? new Date(row.last_verified_at) : new Date(),
+            },
+          })
           providerId = existingProvider.id
         } else {
           // Create new provider
-          const { data: newProvider, error: insertError } = await supabase
-            .from("providers")
-            .insert({
+          const newProvider = await prisma.provider.create({
+            data: {
               slug: row.provider_slug,
-              name_ar: row.name_ar,
-              name_en: row.name_en,
-              website_url: row.website_url || null,
-              setup_fee: row.setup_fee || 0,
-              monthly_fee: row.monthly_fee || 0,
-              activation_time_days_min: row.activation_min || 1,
-              activation_time_days_max: row.activation_max || 7,
-              settlement_days_min: row.settlement_min || 1,
-              settlement_days_max: row.settlement_max || 7,
-              pricing_url: row.official_pricing_url || null,
-              docs_url: row.docs_url || null,
-              terms_url: row.terms_url || null,
-              support_channels: ["email"],
-              is_active: true,
-              last_verified_at: row.last_verified_at || new Date().toISOString(),
-            })
-            .select()
-            .single()
-
-          if (insertError) throw insertError
+              nameAr: row.name_ar,
+              nameEn: row.name_en,
+              websiteUrl: row.website_url || null,
+              setupFee: row.setup_fee || 0,
+              monthlyFee: row.monthly_fee || 0,
+              activationTimeDaysMin: row.activation_min || 1,
+              activationTimeDaysMax: row.activation_max || 7,
+              settlementDaysMin: row.settlement_min || 1,
+              settlementDaysMax: row.settlement_max || 7,
+              pricingUrl: row.official_pricing_url || null,
+              docsUrl: row.docs_url || null,
+              termsUrl: row.terms_url || null,
+              supportChannels: ["email"],
+              isActive: true,
+              lastVerifiedAt: row.last_verified_at ? new Date(row.last_verified_at) : new Date(),
+            },
+          })
           providerId = newProvider.id
         }
 
         // Handle fee if payment_method_code is provided
         if (row.payment_method_code && (row.fee_percent !== undefined || row.fee_fixed !== undefined)) {
           // Get payment method ID
-          const { data: paymentMethod } = await supabase
-            .from("payment_methods")
-            .select("id")
-            .eq("code", row.payment_method_code)
-            .single()
+          const paymentMethod = await prisma.paymentMethod.findUnique({
+            where: { code: row.payment_method_code },
+          })
 
           if (paymentMethod) {
             // Check if fee exists
-            const { data: existingFee } = await supabase
-              .from("provider_fees")
-              .select("id")
-              .eq("provider_id", providerId)
-              .eq("payment_method_id", paymentMethod.id)
-              .single()
+            const existingFee = await prisma.providerFee.findFirst({
+              where: {
+                providerId,
+                paymentMethodId: paymentMethod.id,
+              },
+            })
 
             const feeData = {
-              provider_id: providerId,
-              payment_method_id: paymentMethod.id,
-              fee_percent: row.fee_percent || 0,
-              fee_fixed: row.fee_fixed || 0,
-              source_url: row.official_pricing_url || null,
-              last_verified_at: row.last_verified_at || new Date().toISOString(),
-              is_active: true,
+              providerId,
+              paymentMethodId: paymentMethod.id,
+              feePercent: row.fee_percent || 0,
+              feeFixed: row.fee_fixed || 0,
+              sourceUrl: row.official_pricing_url || null,
+              lastVerifiedAt: row.last_verified_at ? new Date(row.last_verified_at) : new Date(),
+              isActive: true,
             }
 
             if (existingFee) {
-              await supabase
-                .from("provider_fees")
-                .update(feeData)
-                .eq("id", existingFee.id)
+              await prisma.providerFee.update({
+                where: { id: existingFee.id },
+                data: feeData,
+              })
             } else {
-              await supabase
-                .from("provider_fees")
-                .insert(feeData)
+              await prisma.providerFee.create({
+                data: feeData,
+              })
             }
           }
         }
@@ -244,57 +227,90 @@ export async function POST(request: NextRequest) {
         if (row.currencies) {
           const currencies = row.currencies.split("|").map(c => c.trim())
           for (const currency of currencies) {
-            await supabase
-              .from("provider_currencies")
-              .upsert({
-                provider_id: providerId,
-                currency_code: currency,
-                is_settlement_supported: true,
-                is_pricing_supported: true,
-              }, {
-                onConflict: "provider_id,currency_code"
-              })
+            await prisma.providerCurrency.upsert({
+              where: {
+                providerId_currencyCode: {
+                  providerId,
+                  currencyCode: currency,
+                },
+              },
+              update: {
+                isSettlementSupported: true,
+                isPricingSupported: true,
+              },
+              create: {
+                providerId,
+                currencyCode: currency,
+                isSettlementSupported: true,
+                isPricingSupported: true,
+              },
+            })
           }
         }
 
         // Handle integrations
         if (row.integrations) {
           const platforms = row.integrations.split("|").map(p => p.trim().toLowerCase())
+          const validPlatforms: IntegrationPlatform[] = [
+            "shopify", "woocommerce", "magento", "opencart", "prestashop",
+            "salla", "zid", "expandcart", "youcan", "wordpress"
+          ]
+          
           for (const platform of platforms) {
-            const validPlatforms = [
-              "shopify", "woocommerce", "magento", "opencart", "prestashop",
-              "salla", "zid", "expandcart", "youcan", "wordpress"
-            ]
-            if (validPlatforms.includes(platform)) {
-              await supabase
-                .from("provider_integrations")
-                .upsert({
-                  provider_id: providerId,
-                  platform,
-                  integration_type: "plugin",
-                  is_official: true,
-                  is_active: true,
-                }, {
-                  onConflict: "provider_id,platform"
-                })
+            if (validPlatforms.includes(platform as IntegrationPlatform)) {
+              await prisma.providerIntegration.upsert({
+                where: {
+                  providerId_platform: {
+                    providerId,
+                    platform: platform as IntegrationPlatform,
+                  },
+                },
+                update: {
+                  isActive: true,
+                },
+                create: {
+                  providerId,
+                  platform: platform as IntegrationPlatform,
+                  integrationType: "plugin",
+                  isOfficial: true,
+                  isActive: true,
+                },
+              })
             }
           }
         }
 
         // Handle review
         if (row.rating_avg && row.rating_source && row.rating_url) {
-          await supabase
-            .from("provider_reviews")
-            .upsert({
-              provider_id: providerId,
-              platform: row.rating_source.toLowerCase(),
-              rating_avg: row.rating_avg,
-              rating_count: row.rating_count || 0,
-              source_url: row.rating_url,
-              last_verified_at: row.last_verified_at || new Date().toISOString(),
-            }, {
-              onConflict: "provider_id,platform"
-            })
+          const reviewPlatform = row.rating_source.toLowerCase() as ReviewPlatform
+          const validReviewPlatforms: ReviewPlatform[] = [
+            "trustpilot", "g2", "capterra", "google_play", "app_store", "twitter", "reddit", "internal", "other"
+          ]
+          
+          const platform = validReviewPlatforms.includes(reviewPlatform) ? reviewPlatform : "other"
+          
+          await prisma.providerReview.upsert({
+            where: {
+              providerId_platform: {
+                providerId,
+                platform,
+              },
+            },
+            update: {
+              ratingAvg: row.rating_avg,
+              ratingCount: row.rating_count || 0,
+              sourceUrl: row.rating_url,
+              lastVerifiedAt: row.last_verified_at ? new Date(row.last_verified_at) : new Date(),
+            },
+            create: {
+              providerId,
+              platform,
+              ratingAvg: row.rating_avg,
+              ratingCount: row.rating_count || 0,
+              sourceUrl: row.rating_url,
+              lastVerifiedAt: row.last_verified_at ? new Date(row.last_verified_at) : new Date(),
+            },
+          })
         }
 
         result.imported++
@@ -309,13 +325,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Log import action
-    await supabase.from("audit_log").insert({
-      table_name: "providers",
-      record_id: "00000000-0000-0000-0000-000000000000",
-      action: "INSERT",
-      new_values: { action: "bulk_import", count: result.imported },
-      user_id: user.id,
-      user_email: user.email,
+    await prisma.auditLog.create({
+      data: {
+        tableName: "providers",
+        recordId: "bulk_import",
+        action: "INSERT",
+        newValues: { action: "bulk_import", count: result.imported },
+        userId: user.id,
+      },
     })
 
     result.success = result.errors.length === 0

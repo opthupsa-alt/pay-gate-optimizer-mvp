@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import prisma from "@/lib/db"
+import { getCurrentUser } from "@/lib/auth"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
 
 // Validation schema for provider fee
 const providerFeeSchema = z.object({
-  provider_id: z.string().uuid(),
-  payment_method_id: z.string().uuid().nullable().optional(),
+  provider_id: z.string(),
+  payment_method_id: z.string().nullable().optional(),
   fee_percent: z.number().min(0).max(100),
   fee_fixed: z.number().min(0),
-  monthly_fee: z.number().min(0).optional().default(0),
-  setup_fee: z.number().min(0).optional().default(0),
   refund_fee_fixed: z.number().min(0).optional().default(0),
   refund_fee_percent: z.number().min(0).optional().default(0),
   chargeback_fee_fixed: z.number().min(0).optional().default(0),
@@ -35,21 +34,13 @@ const providerFeeSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    
     // Check admin role
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()
-
-    if (profile?.role !== "admin") {
+    if (user.role !== "admin") {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
@@ -57,22 +48,16 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const providerId = searchParams.get("provider_id")
 
-    let query = supabase
-      .from("provider_fees")
-      .select(`
-        *,
-        payment_methods(id, code, name_ar, name_en),
-        providers(id, slug, name_ar, name_en)
-      `)
-      .order("created_at", { ascending: false })
-
-    if (providerId) {
-      query = query.eq("provider_id", providerId)
-    }
-
-    const { data: fees, error } = await query
-
-    if (error) throw error
+    const fees = await prisma.providerFee.findMany({
+      where: providerId ? { providerId } : undefined,
+      include: {
+        paymentMethod: true,
+        provider: {
+          select: { id: true, slug: true, nameAr: true, nameEn: true }
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    })
 
     return NextResponse.json({ fees })
   } catch (error) {
@@ -86,21 +71,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    
     // Check admin role
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()
-
-    if (profile?.role !== "admin") {
+    if (user.role !== "admin") {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
@@ -115,27 +92,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const feeData = {
-      ...validation.data,
-      last_verified_at: new Date().toISOString(),
-    }
+    const data = validation.data
 
-    const { data: fee, error } = await supabase
-      .from("provider_fees")
-      .insert(feeData)
-      .select()
-      .single()
-
-    if (error) throw error
+    const fee = await prisma.providerFee.create({
+      data: {
+        providerId: data.provider_id,
+        paymentMethodId: data.payment_method_id || null,
+        feePercent: data.fee_percent,
+        feeFixed: data.fee_fixed,
+        refundFeeFixed: data.refund_fee_fixed || 0,
+        refundFeePercent: data.refund_fee_percent || 0,
+        chargebackFeeFixed: data.chargeback_fee_fixed || 0,
+        crossBorderFeePercent: data.cross_border_fee_percent || 0,
+        currencyConversionPercent: data.currency_conversion_fee_percent || 0,
+        payoutFeeFixed: data.payout_fee_fixed || 0,
+        minimumFeePerTxn: data.minimum_fee_per_txn || null,
+        maximumFeePerTxn: data.maximum_fee_per_txn || null,
+        minimumTxnAmount: data.minimum_txn_amount || null,
+        maximumTxnAmount: data.maximum_txn_amount || null,
+        volumeTier: data.volume_tier || null,
+        currency: data.currency || "SAR",
+        notesAr: data.notes_ar || null,
+        notesEn: data.notes_en || null,
+        isEstimated: data.is_estimated || false,
+        sourceUrl: data.source_url || null,
+        effectiveFrom: data.effective_from ? new Date(data.effective_from) : null,
+        effectiveTo: data.effective_to ? new Date(data.effective_to) : null,
+        isActive: data.is_active ?? true,
+        lastVerifiedAt: new Date(),
+      },
+    })
 
     // Log to audit
-    await supabase.from("audit_log").insert({
-      table_name: "provider_fees",
-      record_id: fee.id,
-      action: "INSERT",
-      new_values: feeData,
-      user_id: user.id,
-      user_email: user.email,
+    await prisma.auditLog.create({
+      data: {
+        tableName: "provider_fees",
+        recordId: fee.id,
+        action: "INSERT",
+        newValues: data as object,
+        userId: user.id,
+      },
     })
 
     return NextResponse.json({ fee })
@@ -150,21 +146,13 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    
     // Check admin role
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()
-
-    if (profile?.role !== "admin") {
+    if (user.role !== "admin") {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
@@ -176,35 +164,53 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get old values for audit
-    const { data: oldFee } = await supabase
-      .from("provider_fees")
-      .select("*")
-      .eq("id", id)
-      .single()
+    const oldFee = await prisma.providerFee.findUnique({
+      where: { id },
+    })
 
-    const feeData = {
-      ...updates,
-      updated_at: new Date().toISOString(),
+    if (!oldFee) {
+      return NextResponse.json({ error: "الرسوم غير موجودة" }, { status: 404 })
     }
 
-    const { data: fee, error } = await supabase
-      .from("provider_fees")
-      .update(feeData)
-      .eq("id", id)
-      .select()
-      .single()
-
-    if (error) throw error
+    const fee = await prisma.providerFee.update({
+      where: { id },
+      data: {
+        providerId: updates.provider_id,
+        paymentMethodId: updates.payment_method_id || null,
+        feePercent: updates.fee_percent,
+        feeFixed: updates.fee_fixed,
+        refundFeeFixed: updates.refund_fee_fixed || 0,
+        refundFeePercent: updates.refund_fee_percent || 0,
+        chargebackFeeFixed: updates.chargeback_fee_fixed || 0,
+        crossBorderFeePercent: updates.cross_border_fee_percent || 0,
+        currencyConversionPercent: updates.currency_conversion_fee_percent || 0,
+        payoutFeeFixed: updates.payout_fee_fixed || 0,
+        minimumFeePerTxn: updates.minimum_fee_per_txn || null,
+        maximumFeePerTxn: updates.maximum_fee_per_txn || null,
+        minimumTxnAmount: updates.minimum_txn_amount || null,
+        maximumTxnAmount: updates.maximum_txn_amount || null,
+        volumeTier: updates.volume_tier || null,
+        currency: updates.currency || "SAR",
+        notesAr: updates.notes_ar || null,
+        notesEn: updates.notes_en || null,
+        isEstimated: updates.is_estimated || false,
+        sourceUrl: updates.source_url || null,
+        effectiveFrom: updates.effective_from ? new Date(updates.effective_from) : null,
+        effectiveTo: updates.effective_to ? new Date(updates.effective_to) : null,
+        isActive: updates.is_active ?? true,
+      },
+    })
 
     // Log to audit
-    await supabase.from("audit_log").insert({
-      table_name: "provider_fees",
-      record_id: id,
-      action: "UPDATE",
-      old_values: oldFee,
-      new_values: feeData,
-      user_id: user.id,
-      user_email: user.email,
+    await prisma.auditLog.create({
+      data: {
+        tableName: "provider_fees",
+        recordId: id,
+        action: "UPDATE",
+        oldValues: oldFee as object,
+        newValues: updates as object,
+        userId: user.id,
+      },
     })
 
     return NextResponse.json({ fee })
@@ -219,21 +225,13 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    
     // Check admin role
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()
-
-    if (profile?.role !== "admin") {
+    if (user.role !== "admin") {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
@@ -244,27 +242,27 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get old values for audit
-    const { data: oldFee } = await supabase
-      .from("provider_fees")
-      .select("*")
-      .eq("id", id)
-      .single()
+    const oldFee = await prisma.providerFee.findUnique({
+      where: { id },
+    })
 
-    const { error } = await supabase
-      .from("provider_fees")
-      .delete()
-      .eq("id", id)
+    if (!oldFee) {
+      return NextResponse.json({ error: "الرسوم غير موجودة" }, { status: 404 })
+    }
 
-    if (error) throw error
+    await prisma.providerFee.delete({
+      where: { id },
+    })
 
     // Log to audit
-    await supabase.from("audit_log").insert({
-      table_name: "provider_fees",
-      record_id: id,
-      action: "DELETE",
-      old_values: oldFee,
-      user_id: user.id,
-      user_email: user.email,
+    await prisma.auditLog.create({
+      data: {
+        tableName: "provider_fees",
+        recordId: id,
+        action: "DELETE",
+        oldValues: oldFee as object,
+        userId: user.id,
+      },
     })
 
     return NextResponse.json({ success: true })

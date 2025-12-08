@@ -1,178 +1,181 @@
-import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { NextResponse } from "next/server"
+import prisma from "@/lib/db"
+import { getCurrentUser } from "@/lib/auth"
 import type { DataQualityIssue } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
 
 const STALE_DATA_DAYS = 90 // Data older than 90 days is considered stale
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const supabase = await createClient()
-    
     // Check admin role
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()
-
-    if (profile?.role !== "admin") {
+    if (user.role !== "admin") {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 })
     }
 
     const issues: DataQualityIssue[] = []
 
     // 1. Providers without pricing_url
-    const { data: noPricingUrl } = await supabase
-      .from("providers")
-      .select("id, name_ar, name_en, pricing_url, last_verified_at")
-      .eq("is_active", true)
-      .is("pricing_url", null)
+    const noPricingUrl = await prisma.provider.findMany({
+      where: {
+        isActive: true,
+        pricingUrl: null,
+      },
+      select: {
+        id: true,
+        nameAr: true,
+        nameEn: true,
+        pricingUrl: true,
+        lastVerifiedAt: true,
+      },
+    })
 
-    if (noPricingUrl) {
-      for (const provider of noPricingUrl) {
-        issues.push({
-          provider_id: provider.id,
-          provider_name: provider.name_ar,
-          issue_type: "no_pricing_url",
-          description: "المزود ليس لديه رابط صفحة الأسعار الرسمية",
-          last_verified_at: provider.last_verified_at,
-          severity: "medium",
-        })
-      }
+    for (const provider of noPricingUrl) {
+      issues.push({
+        provider_id: provider.id,
+        provider_name: provider.nameAr,
+        issue_type: "no_pricing_url",
+        description: "المزود ليس لديه رابط صفحة الأسعار الرسمية",
+        last_verified_at: provider.lastVerifiedAt?.toISOString() || null,
+        severity: "medium",
+      })
     }
 
     // 2. Stale data (last_verified_at > 90 days)
     const staleDate = new Date()
     staleDate.setDate(staleDate.getDate() - STALE_DATA_DAYS)
 
-    const { data: staleProviders } = await supabase
-      .from("providers")
-      .select("id, name_ar, name_en, last_verified_at")
-      .eq("is_active", true)
-      .lt("last_verified_at", staleDate.toISOString())
+    const staleProviders = await prisma.provider.findMany({
+      where: {
+        isActive: true,
+        lastVerifiedAt: {
+          lt: staleDate,
+        },
+      },
+      select: {
+        id: true,
+        nameAr: true,
+        nameEn: true,
+        lastVerifiedAt: true,
+      },
+    })
 
-    if (staleProviders) {
-      for (const provider of staleProviders) {
-        const daysSince = Math.floor(
-          (Date.now() - new Date(provider.last_verified_at).getTime()) / (1000 * 60 * 60 * 24)
-        )
-        issues.push({
-          provider_id: provider.id,
-          provider_name: provider.name_ar,
-          issue_type: "stale_data",
-          description: `آخر تحقق من البيانات منذ ${daysSince} يوم`,
-          last_verified_at: provider.last_verified_at,
-          severity: daysSince > 180 ? "high" : "medium",
-        })
-      }
+    for (const provider of staleProviders) {
+      const daysSince = Math.floor(
+        (Date.now() - new Date(provider.lastVerifiedAt).getTime()) / (1000 * 60 * 60 * 24)
+      )
+      issues.push({
+        provider_id: provider.id,
+        provider_name: provider.nameAr,
+        issue_type: "stale_data",
+        description: `آخر تحقق من البيانات منذ ${daysSince} يوم`,
+        last_verified_at: provider.lastVerifiedAt?.toISOString() || null,
+        severity: daysSince > 180 ? "high" : "medium",
+      })
     }
 
     // 3. Estimated fees
-    const { data: estimatedFees } = await supabase
-      .from("provider_fees")
-      .select(`
-        id,
-        provider_id,
-        is_estimated,
-        providers(name_ar, name_en)
-      `)
-      .eq("is_estimated", true)
-      .eq("is_active", true)
+    const estimatedFees = await prisma.providerFee.findMany({
+      where: {
+        isEstimated: true,
+        isActive: true,
+      },
+      include: {
+        provider: {
+          select: { nameAr: true, nameEn: true },
+        },
+      },
+    })
 
-    if (estimatedFees) {
-      // Group by provider
-      const providerEstimates = new Map<string, number>()
-      for (const fee of estimatedFees) {
-        const count = providerEstimates.get(fee.provider_id) || 0
-        providerEstimates.set(fee.provider_id, count + 1)
-      }
-
-      for (const [providerId, count] of providerEstimates) {
-        const fee = estimatedFees.find(f => f.provider_id === providerId)
-        const provider = fee?.providers as unknown as { name_ar: string; name_en: string } | null
-        if (provider) {
-          issues.push({
-            provider_id: providerId,
-            provider_name: provider.name_ar,
-            issue_type: "estimated_data",
-            description: `${count} رسوم مقدرة (غير مؤكدة)`,
-            last_verified_at: null,
-            severity: count > 3 ? "high" : "low",
-          })
-        }
+    // Group by provider
+    const providerEstimates = new Map<string, { count: number; providerName: string }>()
+    for (const fee of estimatedFees) {
+      const existing = providerEstimates.get(fee.providerId)
+      if (existing) {
+        existing.count++
+      } else {
+        providerEstimates.set(fee.providerId, { count: 1, providerName: fee.provider.nameAr })
       }
     }
 
+    for (const [providerId, data] of providerEstimates) {
+      issues.push({
+        provider_id: providerId,
+        provider_name: data.providerName,
+        issue_type: "estimated_data",
+        description: `${data.count} رسوم مقدرة (غير مؤكدة)`,
+        last_verified_at: null,
+        severity: data.count > 3 ? "high" : "low",
+      })
+    }
+
     // 4. Missing fees (providers without any fees)
-    const { data: allProviders } = await supabase
-      .from("providers")
-      .select("id, name_ar, name_en")
-      .eq("is_active", true)
+    const allProviders = await prisma.provider.findMany({
+      where: { isActive: true },
+      select: { id: true, nameAr: true, nameEn: true },
+    })
 
-    const { data: providersWithFees } = await supabase
-      .from("provider_fees")
-      .select("provider_id")
-      .eq("is_active", true)
+    const providersWithFees = await prisma.providerFee.findMany({
+      where: { isActive: true },
+      select: { providerId: true },
+      distinct: ["providerId"],
+    })
 
-    if (allProviders && providersWithFees) {
-      const providerIdsWithFees = new Set(providersWithFees.map(f => f.provider_id))
-      
-      for (const provider of allProviders) {
-        if (!providerIdsWithFees.has(provider.id)) {
-          // Check pricing_rules as fallback
-          const { data: pricingRules } = await supabase
-            .from("pricing_rules")
-            .select("id")
-            .eq("provider_id", provider.id)
-            .eq("is_active", true)
-            .limit(1)
+    const providerIdsWithFees = new Set(providersWithFees.map(f => f.providerId))
 
-          if (!pricingRules || pricingRules.length === 0) {
-            issues.push({
-              provider_id: provider.id,
-              provider_name: provider.name_ar,
-              issue_type: "missing_fees",
-              description: "المزود ليس لديه رسوم مسجلة",
-              last_verified_at: null,
-              severity: "high",
-            })
-          }
+    for (const provider of allProviders) {
+      if (!providerIdsWithFees.has(provider.id)) {
+        // Check pricing_rules as fallback
+        const pricingRulesCount = await prisma.pricingRule.count({
+          where: {
+            providerId: provider.id,
+            isActive: true,
+          },
+        })
+
+        if (pricingRulesCount === 0) {
+          issues.push({
+            provider_id: provider.id,
+            provider_name: provider.nameAr,
+            issue_type: "missing_fees",
+            description: "المزود ليس لديه رسوم مسجلة",
+            last_verified_at: null,
+            severity: "high",
+          })
         }
       }
     }
 
     // 5. Missing integrations (active providers without any integrations)
-    const { data: providersWithIntegrations } = await supabase
-      .from("provider_integrations")
-      .select("provider_id")
-      .eq("is_active", true)
+    const providersWithIntegrations = await prisma.providerIntegration.findMany({
+      where: { isActive: true },
+      select: { providerId: true },
+      distinct: ["providerId"],
+    })
 
-    if (allProviders && providersWithIntegrations) {
-      const providerIdsWithIntegrations = new Set(providersWithIntegrations.map(i => i.provider_id))
-      
-      for (const provider of allProviders) {
-        if (!providerIdsWithIntegrations.has(provider.id)) {
-          issues.push({
-            provider_id: provider.id,
-            provider_name: provider.name_ar,
-            issue_type: "missing_integrations",
-            description: "المزود ليس لديه تكاملات مسجلة",
-            last_verified_at: null,
-            severity: "low",
-          })
-        }
+    const providerIdsWithIntegrations = new Set(providersWithIntegrations.map(i => i.providerId))
+
+    for (const provider of allProviders) {
+      if (!providerIdsWithIntegrations.has(provider.id)) {
+        issues.push({
+          provider_id: provider.id,
+          provider_name: provider.nameAr,
+          issue_type: "missing_integrations",
+          description: "المزود ليس لديه تكاملات مسجلة",
+          last_verified_at: null,
+          severity: "low",
+        })
       }
     }
 
     // Sort by severity
-    const severityOrder = { high: 0, medium: 1, low: 2 }
+    const severityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 }
     issues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
 
     // Summary stats
