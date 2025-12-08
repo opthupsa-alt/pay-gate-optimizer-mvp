@@ -46,8 +46,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ==================== Authentication (المصادقة) ====================
@@ -57,11 +58,11 @@ datasource db {
 /// Users table - includes merchants, analysts, and admins
 model User {
   id            String    @id @default(cuid())
-  name          String?   /// الاسم الكامل
+  name          String? /// الاسم الكامل
   email         String    @unique /// البريد الإلكتروني (فريد)
   emailVerified DateTime? /// تاريخ تأكيد البريد
-  password      String?   /// كلمة المرور المشفرة (bcrypt)
-  image         String?   /// صورة الملف الشخصي
+  password      String? /// كلمة المرور المشفرة (bcrypt)
+  image         String? /// صورة الملف الشخصي
   role          UserRole  @default(merchant) /// الدور: تاجر/محلل/مدير
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -137,7 +138,7 @@ model Sector {
   nameEn    String   @map("name_en") /// الاسم بالإنجليزية
   createdAt DateTime @default(now()) @map("created_at")
 
-  wizardRuns         WizardRun[]
+  wizardRuns          WizardRun[]
   providerSectorRules ProviderSectorRule[]
 
   @@map("sectors")
@@ -165,8 +166,8 @@ model PaymentMethod {
 
 /// فئات طرق الدفع
 enum PaymentMethodCategory {
-  card   /// بطاقات ائتمان
-  debit  /// بطاقات خصم (مدى)
+  card /// بطاقات ائتمان
+  debit /// بطاقات خصم (مدى)
   wallet /// محافظ رقمية (Apple Pay, STC Pay)
   bank
   bnpl
@@ -199,61 +200,61 @@ model Capability {
 /// - الدعم (القنوات، ساعات العمل)
 /// - العملات والمخاطر
 model Provider {
-  id                    String          @id @default(cuid())
-  slug                  String          @unique /// المعرف الفريد URL-safe
-  nameAr                String          @map("name_ar") /// الاسم بالعربية
-  nameEn                String          @map("name_en") /// الاسم بالإنجليزية
-  websiteUrl            String?         @map("website_url") /// رابط الموقع
-  logoPath              String?         @map("logo_path") /// مسار الشعار
-  descriptionAr         String?         @db.Text @map("description_ar")
-  descriptionEn         String?         @db.Text @map("description_en")
-  category              ProviderCategory @default(payment_gateway)
-  countriesServed       Json            @default("[\"SA\"]") @map("countries_served")
-  licenseInfo           Json            @default("{}") @map("license_info")
-  
+  id              String           @id @default(cuid())
+  slug            String           @unique /// المعرف الفريد URL-safe
+  nameAr          String           @map("name_ar") /// الاسم بالعربية
+  nameEn          String           @map("name_en") /// الاسم بالإنجليزية
+  websiteUrl      String?          @map("website_url") /// رابط الموقع
+  logoPath        String?          @map("logo_path") /// مسار الشعار
+  descriptionAr   String?          @map("description_ar") @db.Text
+  descriptionEn   String?          @map("description_en") @db.Text
+  category        ProviderCategory @default(payment_gateway)
+  countriesServed Json             @default("[\"SA\"]") @map("countries_served")
+  licenseInfo     Json             @default("{}") @map("license_info")
+
   // ===== Fees (الرسوم) =====
-  setupFee              Decimal?        @db.Decimal(10, 2) @map("setup_fee") /// رسوم التسجيل
-  monthlyFee            Decimal?        @db.Decimal(10, 2) @map("monthly_fee") /// الرسوم الشهرية
-  
+  setupFee   Decimal? @map("setup_fee") @db.Decimal(10, 2) /// رسوم التسجيل
+  monthlyFee Decimal? @map("monthly_fee") @db.Decimal(10, 2) /// الرسوم الشهرية
+
   // ===== Operations (العمليات) =====
-  activationTimeDaysMin Int             @default(1) @map("activation_time_days_min") /// أقل وقت للتفعيل
-  activationTimeDaysMax Int             @default(14) @map("activation_time_days_max") /// أقصى وقت للتفعيل
-  settlementDaysMin     Int             @default(1) @map("settlement_days_min") /// أقل وقت للتسوية
-  settlementDaysMax     Int             @default(3) @map("settlement_days_max") /// أقصى وقت للتسوية
-  payoutSchedule        PayoutSchedule  @default(weekly) @map("payout_schedule") /// جدول الدفع
-  payoutMinAmount       Decimal?        @db.Decimal(10, 2) @map("payout_min_amount") /// الحد الأدنى للسحب
-  
+  activationTimeDaysMin Int            @default(1) @map("activation_time_days_min") /// أقل وقت للتفعيل
+  activationTimeDaysMax Int            @default(14) @map("activation_time_days_max") /// أقصى وقت للتفعيل
+  settlementDaysMin     Int            @default(1) @map("settlement_days_min") /// أقل وقت للتسوية
+  settlementDaysMax     Int            @default(3) @map("settlement_days_max") /// أقصى وقت للتسوية
+  payoutSchedule        PayoutSchedule @default(weekly) @map("payout_schedule") /// جدول الدفع
+  payoutMinAmount       Decimal?       @map("payout_min_amount") @db.Decimal(10, 2) /// الحد الأدنى للسحب
+
   // ===== Support (الدعم) =====
-  supportChannels       Json            @default("[]") @map("support_channels") /// قنوات الدعم
-  supportHours          String?         @map("support_hours") /// ساعات الدعم
-  supportSla            String?         @map("support_sla") /// اتفاقية مستوى الخدمة
-  docsUrl               String?         @map("docs_url") /// رابط التوثيق
-  termsUrl              String?         @map("terms_url") /// رابط الشروط
-  pricingUrl            String?         @map("pricing_url") /// رابط الأسعار
-  
+  supportChannels Json    @default("[]") @map("support_channels") /// قنوات الدعم
+  supportHours    String? @map("support_hours") /// ساعات الدعم
+  supportSla      String? @map("support_sla") /// اتفاقية مستوى الخدمة
+  docsUrl         String? @map("docs_url") /// رابط التوثيق
+  termsUrl        String? @map("terms_url") /// رابط الشروط
+  pricingUrl      String? @map("pricing_url") /// رابط الأسعار
+
   // ===== Currencies (العملات) =====
-  supportedCurrencies   Json            @default("[\"SAR\"]") @map("supported_currencies")
-  multiCurrencySupported Boolean        @default(false) @map("multi_currency_supported")
-  
+  supportedCurrencies    Json    @default("[\"SAR\"]") @map("supported_currencies")
+  multiCurrencySupported Boolean @default(false) @map("multi_currency_supported")
+
   // ===== Risk (المخاطر) =====
-  riskNotes             String?         @db.Text @map("risk_notes") /// ملاحظات المخاطر
-  rollingReservePercent Decimal?        @db.Decimal(5, 2) @map("rolling_reserve_percent") /// نسبة الاحتياطي
-  rollingReserveDays    Int?            @map("rolling_reserve_days") /// أيام الاحتياطي
-  
+  riskNotes             String?  @map("risk_notes") @db.Text /// ملاحظات المخاطر
+  rollingReservePercent Decimal? @map("rolling_reserve_percent") @db.Decimal(5, 2) /// نسبة الاحتياطي
+  rollingReserveDays    Int?     @map("rolling_reserve_days") /// أيام الاحتياطي
+
   // Pros/Cons
-  prosAr                Json            @default("[]") @map("pros_ar")
-  prosEn                Json            @default("[]") @map("pros_en")
-  consAr                Json            @default("[]") @map("cons_ar")
-  consEn                Json            @default("[]") @map("cons_en")
-  
+  prosAr Json @default("[]") @map("pros_ar")
+  prosEn Json @default("[]") @map("pros_en")
+  consAr Json @default("[]") @map("cons_ar")
+  consEn Json @default("[]") @map("cons_en")
+
   // Status
-  status                ProviderStatus  @default(active)
-  notesAr               String?         @db.Text @map("notes_ar")
-  notesEn               String?         @db.Text @map("notes_en")
-  isActive              Boolean         @default(true) @map("is_active")
-  lastVerifiedAt        DateTime        @default(now()) @map("last_verified_at")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  updatedAt             DateTime        @updatedAt @map("updated_at")
+  status         ProviderStatus @default(active)
+  notesAr        String?        @map("notes_ar") @db.Text
+  notesEn        String?        @map("notes_en") @db.Text
+  isActive       Boolean        @default(true) @map("is_active")
+  lastVerifiedAt DateTime       @default(now()) @map("last_verified_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
 
   // Relations
   providerPaymentMethods ProviderPaymentMethod[]
@@ -316,24 +317,24 @@ model ProviderPaymentMethod {
 }
 
 model PricingRule {
-  id                  String   @id @default(cuid())
-  providerId          String   @map("provider_id")
-  paymentMethodId     String?  @map("payment_method_id")
-  feePercent          Decimal  @db.Decimal(5, 4) @map("fee_percent")
-  feeFixed            Decimal  @db.Decimal(10, 2) @map("fee_fixed")
-  monthlyFee          Decimal  @default(0) @db.Decimal(10, 2) @map("monthly_fee")
-  setupFee            Decimal  @default(0) @db.Decimal(10, 2) @map("setup_fee")
-  refundFeeFixed      Decimal  @default(0) @db.Decimal(10, 2) @map("refund_fee_fixed")
-  chargebackFeeFixed  Decimal  @default(0) @db.Decimal(10, 2) @map("chargeback_fee_fixed")
-  minimumFeePerTxn    Decimal? @db.Decimal(10, 2) @map("minimum_fee_per_txn")
-  maximumFeePerTxn    Decimal? @db.Decimal(10, 2) @map("maximum_fee_per_txn")
-  notesAr             String?  @db.Text @map("notes_ar")
-  notesEn             String?  @db.Text @map("notes_en")
-  effectiveFrom       DateTime? @map("effective_from")
-  effectiveTo         DateTime? @map("effective_to")
-  isActive            Boolean  @default(true) @map("is_active")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  id                 String    @id @default(cuid())
+  providerId         String    @map("provider_id")
+  paymentMethodId    String?   @map("payment_method_id")
+  feePercent         Decimal   @map("fee_percent") @db.Decimal(5, 4)
+  feeFixed           Decimal   @map("fee_fixed") @db.Decimal(10, 2)
+  monthlyFee         Decimal   @default(0) @map("monthly_fee") @db.Decimal(10, 2)
+  setupFee           Decimal   @default(0) @map("setup_fee") @db.Decimal(10, 2)
+  refundFeeFixed     Decimal   @default(0) @map("refund_fee_fixed") @db.Decimal(10, 2)
+  chargebackFeeFixed Decimal   @default(0) @map("chargeback_fee_fixed") @db.Decimal(10, 2)
+  minimumFeePerTxn   Decimal?  @map("minimum_fee_per_txn") @db.Decimal(10, 2)
+  maximumFeePerTxn   Decimal?  @map("maximum_fee_per_txn") @db.Decimal(10, 2)
+  notesAr            String?   @map("notes_ar") @db.Text
+  notesEn            String?   @map("notes_en") @db.Text
+  effectiveFrom      DateTime? @map("effective_from")
+  effectiveTo        DateTime? @map("effective_to")
+  isActive           Boolean   @default(true) @map("is_active")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   provider      Provider       @relation(fields: [providerId], references: [id], onDelete: Cascade)
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
@@ -386,35 +387,35 @@ model OpsMetrics {
 // ==================== Extended Provider Tables ====================
 
 model ProviderFee {
-  id                        String   @id @default(cuid())
-  providerId                String   @map("provider_id")
-  paymentMethodId           String?  @map("payment_method_id")
-  feePercent                Decimal  @db.Decimal(5, 4) @map("fee_percent")
-  feeFixed                  Decimal  @db.Decimal(10, 2) @map("fee_fixed")
-  monthlyFee                Decimal  @default(0) @db.Decimal(10, 2) @map("monthly_fee")
-  setupFee                  Decimal  @default(0) @db.Decimal(10, 2) @map("setup_fee")
-  refundFeeFixed            Decimal  @default(0) @db.Decimal(10, 2) @map("refund_fee_fixed")
-  refundFeePercent          Decimal  @default(0) @db.Decimal(5, 4) @map("refund_fee_percent")
-  chargebackFeeFixed        Decimal  @default(0) @db.Decimal(10, 2) @map("chargeback_fee_fixed")
-  crossBorderFeePercent     Decimal  @default(0) @db.Decimal(5, 4) @map("cross_border_fee_percent")
-  currencyConversionPercent Decimal  @default(0) @db.Decimal(5, 4) @map("currency_conversion_fee_percent")
-  payoutFeeFixed            Decimal  @default(0) @db.Decimal(10, 2) @map("payout_fee_fixed")
-  minimumFeePerTxn          Decimal? @db.Decimal(10, 2) @map("minimum_fee_per_txn")
-  maximumFeePerTxn          Decimal? @db.Decimal(10, 2) @map("maximum_fee_per_txn")
-  minimumTxnAmount          Decimal? @db.Decimal(10, 2) @map("minimum_txn_amount")
-  maximumTxnAmount          Decimal? @db.Decimal(10, 2) @map("maximum_txn_amount")
-  volumeTier                String?  @map("volume_tier")
-  currency                  String   @default("SAR")
-  notesAr                   String?  @db.Text @map("notes_ar")
-  notesEn                   String?  @db.Text @map("notes_en")
-  isEstimated               Boolean  @default(false) @map("is_estimated")
-  sourceUrl                 String?  @map("source_url")
+  id                        String    @id @default(cuid())
+  providerId                String    @map("provider_id")
+  paymentMethodId           String?   @map("payment_method_id")
+  feePercent                Decimal   @map("fee_percent") @db.Decimal(5, 4)
+  feeFixed                  Decimal   @map("fee_fixed") @db.Decimal(10, 2)
+  monthlyFee                Decimal   @default(0) @map("monthly_fee") @db.Decimal(10, 2)
+  setupFee                  Decimal   @default(0) @map("setup_fee") @db.Decimal(10, 2)
+  refundFeeFixed            Decimal   @default(0) @map("refund_fee_fixed") @db.Decimal(10, 2)
+  refundFeePercent          Decimal   @default(0) @map("refund_fee_percent") @db.Decimal(5, 4)
+  chargebackFeeFixed        Decimal   @default(0) @map("chargeback_fee_fixed") @db.Decimal(10, 2)
+  crossBorderFeePercent     Decimal   @default(0) @map("cross_border_fee_percent") @db.Decimal(5, 4)
+  currencyConversionPercent Decimal   @default(0) @map("currency_conversion_fee_percent") @db.Decimal(5, 4)
+  payoutFeeFixed            Decimal   @default(0) @map("payout_fee_fixed") @db.Decimal(10, 2)
+  minimumFeePerTxn          Decimal?  @map("minimum_fee_per_txn") @db.Decimal(10, 2)
+  maximumFeePerTxn          Decimal?  @map("maximum_fee_per_txn") @db.Decimal(10, 2)
+  minimumTxnAmount          Decimal?  @map("minimum_txn_amount") @db.Decimal(10, 2)
+  maximumTxnAmount          Decimal?  @map("maximum_txn_amount") @db.Decimal(10, 2)
+  volumeTier                String?   @map("volume_tier")
+  currency                  String    @default("SAR")
+  notesAr                   String?   @map("notes_ar") @db.Text
+  notesEn                   String?   @map("notes_en") @db.Text
+  isEstimated               Boolean   @default(false) @map("is_estimated")
+  sourceUrl                 String?   @map("source_url")
   effectiveFrom             DateTime? @map("effective_from")
   effectiveTo               DateTime? @map("effective_to")
-  isActive                  Boolean  @default(true) @map("is_active")
-  lastVerifiedAt            DateTime @default(now()) @map("last_verified_at")
-  createdAt                 DateTime @default(now()) @map("created_at")
-  updatedAt                 DateTime @updatedAt @map("updated_at")
+  isActive                  Boolean   @default(true) @map("is_active")
+  lastVerifiedAt            DateTime  @default(now()) @map("last_verified_at")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
 
   provider      Provider       @relation(fields: [providerId], references: [id], onDelete: Cascade)
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
@@ -423,20 +424,20 @@ model ProviderFee {
 }
 
 model ProviderIntegration {
-  id              String            @id @default(cuid())
-  providerId      String            @map("provider_id")
-  platform        IntegrationPlatform
-  integrationType IntegrationType   @map("integration_type")
-  isOfficial      Boolean           @default(true) @map("is_official")
-  officialUrl     String?           @map("official_url")
-  docsUrl         String?           @map("docs_url")
-  setupDifficulty SetupDifficulty   @default(medium) @map("setup_difficulty")
-  featuresSupported Json            @default("[]") @map("features_supported")
-  notesAr         String?           @db.Text @map("notes_ar")
-  notesEn         String?           @db.Text @map("notes_en")
-  isActive        Boolean           @default(true) @map("is_active")
-  lastVerifiedAt  DateTime          @default(now()) @map("last_verified_at")
-  createdAt       DateTime          @default(now()) @map("created_at")
+  id                String              @id @default(cuid())
+  providerId        String              @map("provider_id")
+  platform          IntegrationPlatform
+  integrationType   IntegrationType     @map("integration_type")
+  isOfficial        Boolean             @default(true) @map("is_official")
+  officialUrl       String?             @map("official_url")
+  docsUrl           String?             @map("docs_url")
+  setupDifficulty   SetupDifficulty     @default(medium) @map("setup_difficulty")
+  featuresSupported Json                @default("[]") @map("features_supported")
+  notesAr           String?             @map("notes_ar") @db.Text
+  notesEn           String?             @map("notes_en") @db.Text
+  isActive          Boolean             @default(true) @map("is_active")
+  lastVerifiedAt    DateTime            @default(now()) @map("last_verified_at")
+  createdAt         DateTime            @default(now()) @map("created_at")
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
@@ -477,14 +478,14 @@ enum SetupDifficulty {
 }
 
 model ProviderCurrency {
-  id                     String   @id @default(cuid())
-  providerId             String   @map("provider_id")
-  currencyCode           String   @map("currency_code")
-  isSettlementSupported  Boolean  @default(true) @map("is_settlement_supported")
-  isPricingSupported     Boolean  @default(true) @map("is_pricing_supported")
-  conversionFeePercent   Decimal  @default(0) @db.Decimal(5, 4) @map("conversion_fee_percent")
-  notes                  String?  @db.Text
-  createdAt              DateTime @default(now()) @map("created_at")
+  id                    String   @id @default(cuid())
+  providerId            String   @map("provider_id")
+  currencyCode          String   @map("currency_code")
+  isSettlementSupported Boolean  @default(true) @map("is_settlement_supported")
+  isPricingSupported    Boolean  @default(true) @map("is_pricing_supported")
+  conversionFeePercent  Decimal  @default(0) @map("conversion_fee_percent") @db.Decimal(5, 4)
+  notes                 String?  @db.Text
+  createdAt             DateTime @default(now()) @map("created_at")
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
@@ -530,19 +531,19 @@ enum ConfidenceLevel {
 }
 
 model ProviderReview {
-  id                  String         @id @default(cuid())
-  providerId          String         @map("provider_id")
-  platform            ReviewPlatform
-  ratingAvg           Decimal?       @db.Decimal(3, 2) @map("rating_avg")
-  ratingCount         Int            @default(0) @map("rating_count")
-  ratingMax           Int            @default(5) @map("rating_max")
-  highlightsPositive  Json           @default("[]") @map("highlights_positive")
-  highlightsNegative  Json           @default("[]") @map("highlights_negative")
-  sampleReviews       Json           @default("[]") @map("sample_reviews")
-  sourceUrl           String         @map("source_url")
-  lastVerifiedAt      DateTime       @default(now()) @map("last_verified_at")
-  createdAt           DateTime       @default(now()) @map("created_at")
-  updatedAt           DateTime       @updatedAt @map("updated_at")
+  id                 String         @id @default(cuid())
+  providerId         String         @map("provider_id")
+  platform           ReviewPlatform
+  ratingAvg          Decimal?       @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount        Int            @default(0) @map("rating_count")
+  ratingMax          Int            @default(5) @map("rating_max")
+  highlightsPositive Json           @default("[]") @map("highlights_positive")
+  highlightsNegative Json           @default("[]") @map("highlights_negative")
+  sampleReviews      Json           @default("[]") @map("sample_reviews")
+  sourceUrl          String         @map("source_url")
+  lastVerifiedAt     DateTime       @default(now()) @map("last_verified_at")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
@@ -567,11 +568,11 @@ model ProviderWallet {
   providerId   String     @map("provider_id")
   walletType   WalletType @map("wallet_type")
   isSupported  Boolean    @default(true) @map("is_supported")
-  feePercent   Decimal?   @db.Decimal(5, 4) @map("fee_percent")
-  feeFixed     Decimal?   @db.Decimal(10, 2) @map("fee_fixed")
+  feePercent   Decimal?   @map("fee_percent") @db.Decimal(5, 4)
+  feeFixed     Decimal?   @map("fee_fixed") @db.Decimal(10, 2)
   requirements String?    @db.Text
-  notesAr      String?    @db.Text @map("notes_ar")
-  notesEn      String?    @db.Text @map("notes_en")
+  notesAr      String?    @map("notes_ar") @db.Text
+  notesEn      String?    @map("notes_en") @db.Text
   createdAt    DateTime   @default(now()) @map("created_at")
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
@@ -592,20 +593,20 @@ enum WalletType {
 }
 
 model ProviderBnpl {
-  id               String       @id @default(cuid())
-  providerId       String       @map("provider_id")
-  bnplProvider     BnplProvider @map("bnpl_provider")
-  isIntegrated     Boolean      @default(true) @map("is_integrated")
-  merchantFeePercent Decimal?   @db.Decimal(5, 4) @map("merchant_fee_percent")
-  merchantFeeFixed Decimal      @default(0) @db.Decimal(10, 2) @map("merchant_fee_fixed")
-  maxInstallments  Int          @default(4) @map("max_installments")
-  minOrderAmount   Decimal?     @db.Decimal(10, 2) @map("min_order_amount")
-  maxOrderAmount   Decimal?     @db.Decimal(10, 2) @map("max_order_amount")
-  settlementDays   Int?         @map("settlement_days")
-  notesAr          String?      @db.Text @map("notes_ar")
-  notesEn          String?      @db.Text @map("notes_en")
-  integrationUrl   String?      @map("integration_url")
-  createdAt        DateTime     @default(now()) @map("created_at")
+  id                 String       @id @default(cuid())
+  providerId         String       @map("provider_id")
+  bnplProvider       BnplProvider @map("bnpl_provider")
+  isIntegrated       Boolean      @default(true) @map("is_integrated")
+  merchantFeePercent Decimal?     @map("merchant_fee_percent") @db.Decimal(5, 4)
+  merchantFeeFixed   Decimal      @default(0) @map("merchant_fee_fixed") @db.Decimal(10, 2)
+  maxInstallments    Int          @default(4) @map("max_installments")
+  minOrderAmount     Decimal?     @map("min_order_amount") @db.Decimal(10, 2)
+  maxOrderAmount     Decimal?     @map("max_order_amount") @db.Decimal(10, 2)
+  settlementDays     Int?         @map("settlement_days")
+  notesAr            String?      @map("notes_ar") @db.Text
+  notesEn            String?      @map("notes_en") @db.Text
+  integrationUrl     String?      @map("integration_url")
+  createdAt          DateTime     @default(now()) @map("created_at")
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
@@ -643,11 +644,11 @@ model WizardRun {
   ipHash          String?  @map("ip_hash")
   sectorId        String?  @map("sector_id")
   businessType    String?  @map("business_type")
-  monthlyGmv      Decimal? @db.Decimal(15, 2) @map("monthly_gmv")
+  monthlyGmv      Decimal? @map("monthly_gmv") @db.Decimal(15, 2)
   txCount         Int?     @map("tx_count")
-  avgTicket       Decimal? @db.Decimal(10, 2) @map("avg_ticket")
-  refundsRate     Decimal  @default(0) @db.Decimal(5, 4) @map("refunds_rate")
-  chargebacksRate Decimal  @default(0) @db.Decimal(5, 4) @map("chargebacks_rate")
+  avgTicket       Decimal? @map("avg_ticket") @db.Decimal(10, 2)
+  refundsRate     Decimal  @default(0) @map("refunds_rate") @db.Decimal(5, 4)
+  chargebacksRate Decimal  @default(0) @map("chargebacks_rate") @db.Decimal(5, 4)
   paymentMix      Json     @default("{}") @map("payment_mix")
   needs           Json     @default("{}") @map("needs")
   createdAt       DateTime @default(now()) @map("created_at")
@@ -668,9 +669,9 @@ model Recommendation {
   id              String   @id @default(cuid())
   wizardRunId     String   @map("wizard_run_id") /// رقم تشغيل المعالج
   providerId      String   @map("provider_id") /// المزود الموصى به
-  rank            Int      /// الترتيب (1 = الأفضل)
-  expectedCostMin Decimal  @db.Decimal(15, 2) @map("expected_cost_min") /// أقل تكلفة متوقعة
-  expectedCostMax Decimal  @db.Decimal(15, 2) @map("expected_cost_max") /// أقصى تكلفة متوقعة
+  rank            Int /// الترتيب (1 = الأفضل)
+  expectedCostMin Decimal  @map("expected_cost_min") @db.Decimal(15, 2) /// أقل تكلفة متوقعة
+  expectedCostMax Decimal  @map("expected_cost_max") @db.Decimal(15, 2) /// أقصى تكلفة متوقعة
   breakdown       Json     @default("[]") /// تفاصيل التكلفة
   scoreTotal      Int      @map("score_total") /// النتيجة الإجمالية (0-100)
   scoreCost       Int      @map("score_cost") /// نتيجة التكلفة
@@ -695,24 +696,47 @@ model Recommendation {
 /// يتم إنشاء Lead عندما يرسل المستخدم نموذج الاتصال بعد استخدام المعالج
 /// يمكن تتبع حالة كل Lead من جديد حتى إتمام الصفقة أو إلغائها
 model Lead {
-  id              String     @id @default(cuid())
-  wizardRunId     String?    @map("wizard_run_id") /// ربط بتشغيل المعالج
-  name            String     /// اسم العميل
-  phone           String?    /// رقم الهاتف
-  email           String?    /// البريد الإلكتروني
-  companyName     String?    @map("company_name") /// اسم الشركة
-  city            String?    /// المدينة
-  preferredContact String    @default("email") @map("preferred_contact") /// طريقة التواصل المفضلة
-  notes           String?    @db.Text /// ملاحظات
-  status          LeadStatus @default(new) /// حالة العميل
-  ownerUserId     String?    @map("owner_user_id") /// المسؤول عن المتابعة
-  createdAt       DateTime   @default(now()) @map("created_at")
-  updatedAt       DateTime   @updatedAt @map("updated_at")
+  id               String         @id @default(cuid())
+  wizardRunId      String?        @map("wizard_run_id") /// ربط بتشغيل المعالج
+  name             String /// اسم العميل
+  phone            String? /// رقم الهاتف (قديم - للتوافقية)
+  phoneRaw         String?        @map("phone_raw") /// رقم الواتساب كما أدخله المستخدم
+  phoneNormalized  String?        @map("phone_normalized") /// رقم الواتساب بالصيغة القياسية (966XXXXXXXXX)
+  countryCode      String?        @map("country_code") /// كود الدولة (966, 971, etc)
+  email            String? /// البريد الإلكتروني
+  companyName      String?        @map("company_name") /// اسم الشركة
+  sector           String? /// القطاع/مجال النشاط
+  city             String? /// المدينة
+  preferredContact String         @default("whatsapp") @map("preferred_contact") /// طريقة التواصل المفضلة
+  notes            String?        @db.Text /// ملاحظات
+  status           LeadStatus     @default(new) /// حالة العميل
+  whatsappStatus   WhatsappStatus @default(pending) @map("whatsapp_status") /// حالة إرسال الواتساب
+  whatsappSentAt   DateTime?      @map("whatsapp_sent_at") /// تاريخ إرسال الواتساب
+  lastError        String?        @map("last_error") @db.Text /// آخر خطأ من الـ API
+  ownerUserId      String?        @map("owner_user_id") /// المسؤول عن المتابعة
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
 
   wizardRun WizardRun? @relation(fields: [wizardRunId], references: [id], onDelete: SetNull)
   owner     User?      @relation("LeadOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
 
+  @@index([phoneNormalized])
+  @@index([whatsappStatus])
   @@map("leads")
+}
+
+/// حالات إرسال الواتساب
+/// pending: في الانتظار
+/// sending: جاري الإرسال
+/// sent: تم الإرسال بنجاح
+/// failed: فشل الإرسال
+/// skipped: تم التخطي
+enum WhatsappStatus {
+  pending
+  sending
+  sent
+  failed
+  skipped
 }
 
 /// حالات العميل المحتمل
@@ -742,8 +766,47 @@ model AuditLog {
   newValues Json?    @map("new_values")
   userId    String?  @map("user_id")
   ipAddress String?  @map("ip_address")
-  userAgent String?  @db.Text @map("user_agent")
+  userAgent String?  @map("user_agent") @db.Text
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("audit_log")
+}
+
+// ==================== Site Settings (إعدادات الموقع) ====================
+
+/// إعدادات الموقع العامة - يتم تخزينها كـ key-value pairs
+/// يمكن تعديلها من لوحة التحكم وتؤثر على كل أنحاء التطبيق
+model SiteSetting {
+  id          String      @id @default(cuid())
+  key         String      @unique /// مفتاح الإعداد الفريد
+  value       String      @db.Text /// القيمة (نص أو JSON)
+  type        SettingType @default(string) /// نوع الإعداد
+  group       String      @default("general") /// مجموعة الإعداد (general, branding, whatsapp, seo, etc)
+  label       String /// عنوان الإعداد للعرض
+  description String?     @db.Text /// وصف الإعداد
+  isPublic    Boolean     @default(false) @map("is_public") /// هل الإعداد متاح للعميل
+  isEditable  Boolean     @default(true) @map("is_editable") /// هل يمكن تعديله من لوحة التحكم
+  sortOrder   Int         @default(0) @map("sort_order") /// ترتيب العرض
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@index([isPublic])
+  @@map("site_settings")
+}
+
+/// أنواع الإعدادات
+/// string: نص عادي
+/// number: رقم
+/// boolean: صح/خطأ
+/// json: كائن JSON
+/// image: رابط صورة
+/// color: لون (hex)
+enum SettingType {
+  string
+  number
+  boolean
+  json
+  image
+  color
 }

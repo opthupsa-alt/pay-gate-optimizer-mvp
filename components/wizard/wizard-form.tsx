@@ -12,8 +12,9 @@ import { StepPaymentMix } from "./step-payment-mix"
 import { StepRates } from "./step-rates"
 import { StepNeeds } from "./step-needs"
 import { StepSummary } from "./step-summary"
+import { StepContact, type ContactData } from "./step-contact"
 import { translations } from "@/lib/translations"
-import type { Sector, WizardFormData, PaymentMix, WizardNeeds } from "@/lib/types"
+import type { Sector, WizardFormData, PaymentMix, WizardNeeds, WizardContactData } from "@/lib/types"
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -22,7 +23,7 @@ interface WizardFormProps {
   locale: "ar" | "en"
 }
 
-const TOTAL_STEPS = 7
+const TOTAL_STEPS = 8
 
 const defaultPaymentMix: PaymentMix = {
   mada: 60,
@@ -41,6 +42,18 @@ const defaultNeeds: WizardNeeds = {
   fast_settlement: false,
   apple_pay: false,
   google_pay: false,
+}
+
+const defaultContact: WizardContactData = {
+  fullName: "",
+  companyName: "",
+  sector: "",
+  phone: {
+    raw: "",
+    normalized: "",
+    countryCode: "966",
+    isValid: false,
+  },
 }
 
 export function WizardForm({ sectors, locale }: WizardFormProps) {
@@ -62,6 +75,7 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
     refunds_rate: 2,
     chargebacks_rate: 0.5,
     needs: defaultNeeds,
+    contact: defaultContact,
     locale,
   })
 
@@ -86,6 +100,13 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
         return true
       case 7:
         return true
+      case 8:
+        // Validate contact info
+        return (
+          formData.contact.fullName.trim().length >= 3 &&
+          formData.contact.companyName.trim().length >= 2 &&
+          formData.contact.phone.isValid
+        )
       default:
         return false
     }
@@ -227,6 +248,15 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
           )}
 
           {currentStep === 7 && <StepSummary data={formData} sectors={sectors} locale={locale} />}
+
+          {currentStep === 8 && (
+            <StepContact
+              contactData={formData.contact}
+              onContactDataChange={(contact) => updateFormData("contact", contact as WizardContactData)}
+              sectorName={sectors.find(s => s.id === formData.sector_id)?.[locale === "ar" ? "name_ar" : "name_en"]}
+              locale={locale}
+            />
+          )}
 
           {error && (
             <p className={cn(

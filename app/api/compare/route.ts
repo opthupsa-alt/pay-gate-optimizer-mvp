@@ -89,6 +89,12 @@ export async function POST(request: NextRequest) {
       chargebacks_rate: data.chargebacks_rate || 0.5,
       needs: data.needs as WizardNeeds,
       platform: data.platform as WizardFormData["platform"],
+      contact: {
+        fullName: "",
+        companyName: "",
+        sector: "",
+        phone: { raw: "", normalized: "", countryCode: "966", isValid: false },
+      },
       locale: data.locale || "ar",
     }
 

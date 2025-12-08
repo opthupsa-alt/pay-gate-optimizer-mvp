@@ -38,6 +38,10 @@ export const translations = {
           title: "ملخص البيانات",
           subtitle: "راجع بياناتك قبل الحصول على التوصيات",
         },
+        8: {
+          title: "بيانات التواصل",
+          subtitle: "أدخل بياناتك لاستلام التقرير عبر الواتساب",
+        },
       },
       fields: {
         sector: "قطاع النشاط",
@@ -142,6 +146,10 @@ export const translations = {
         7: {
           title: "Summary",
           subtitle: "Review your data before getting recommendations",
+        },
+        8: {
+          title: "Contact Information",
+          subtitle: "Enter your details to receive the report via WhatsApp",
         },
       },
       fields: {

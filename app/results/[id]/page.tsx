@@ -155,6 +155,12 @@ export default function ResultsPage() {
             apple_pay: false,
             google_pay: false,
           },
+          contact: {
+            fullName: "",
+            companyName: "",
+            sector: "",
+            phone: { raw: "", normalized: "", countryCode: "966", isValid: false },
+          },
           locale,
         } : undefined,
       })

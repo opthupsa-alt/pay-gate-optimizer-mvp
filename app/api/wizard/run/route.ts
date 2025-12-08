@@ -143,8 +143,53 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Create Lead record if contact data provided
+    let leadId: string | null = null
+    if (data.contact && data.contact.fullName && data.contact.phone?.normalized) {
+      try {
+        const lead = await prisma.lead.create({
+          data: {
+            wizardRunId: wizardRun.id,
+            name: data.contact.fullName,
+            companyName: data.contact.companyName || null,
+            sector: data.contact.sector || null,
+            phoneRaw: data.contact.phone.raw,
+            phoneNormalized: data.contact.phone.normalized,
+            countryCode: data.contact.phone.countryCode,
+            preferredContact: "whatsapp",
+            status: "new",
+            whatsappStatus: "pending",
+          },
+        })
+        leadId = lead.id
+
+        // Trigger WhatsApp send in background (fire and forget)
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+        const pdfUrl = `${baseUrl}/api/results/pdf/${wizardRun.id}`
+        
+        // Non-blocking WhatsApp send
+        fetch(`${baseUrl}/api/whatsapp/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leadId: lead.id,
+            wizardRunId: wizardRun.id,
+            pdfUrl,
+            locale: data.locale || "ar",
+          }),
+        }).catch((err) => {
+          console.error("WhatsApp trigger failed:", err)
+        })
+      } catch (leadError) {
+        console.error("Lead creation failed:", leadError)
+        // Don't fail the wizard - just log the error
+      }
+    }
+
     return NextResponse.json({
       wizardRunId: wizardRun.id,
+      leadId,
       recommendations: recommendations.slice(0, 5), // Top 5
     })
   } catch (error) {

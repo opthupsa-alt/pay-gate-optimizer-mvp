@@ -464,8 +464,24 @@ export interface WizardFormData {
   // Step 7 - Platform (Optional)
   platform?: IntegrationPlatform
   
+  // Step 8 - Contact Info (for WhatsApp delivery)
+  contact: WizardContactData
+  
   // Meta
   locale: Locale
+}
+
+// Contact data for WhatsApp delivery
+export interface WizardContactData {
+  fullName: string
+  companyName: string
+  sector: string
+  phone: {
+    raw: string
+    normalized: string
+    countryCode: string
+    isValid: boolean
+  }
 }
 
 // Provider with all relations (Extended)
