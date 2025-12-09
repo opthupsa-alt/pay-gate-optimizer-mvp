@@ -182,6 +182,73 @@ function processArabicText(text: string): string {
 
 ---
 
+### ❌ Problem 4: PDF Not Sent from Production Wizard (Only Text Arrives)
+
+**Symptoms:**
+- Test endpoint `/api/test/pdf` works perfectly ✅
+- Production wizard sends only text message ❌
+- PDF never arrives on WhatsApp
+
+**Root Cause:**  
+In `app/api/wizard/run/route.ts`, the code was sending an **API URL** as `pdfUrl` instead of letting `/api/whatsapp/send` generate the PDF:
+
+```typescript
+// ❌ WRONG - This is an API endpoint, not a real PDF URL!
+const pdfUrl = `${baseUrl}/api/results/pdf/${wizardRun.id}`
+
+fetch(`${baseUrl}/api/whatsapp/send`, {
+  body: JSON.stringify({
+    leadId: lead.id,
+    wizardRunId: wizardRun.id,
+    pdfUrl,  // ❌ Passing invalid URL
+  }),
+})
+```
+
+The `/api/whatsapp/send` endpoint saw that `pdfUrl` was provided and skipped PDF generation!
+
+**Solution:**  
+Remove `pdfUrl` from the wizard/run request - let whatsapp/send generate fresh PDF:
+
+```typescript
+// ✅ CORRECT - Don't pass pdfUrl, let the API generate it
+fetch(`${baseUrl}/api/whatsapp/send`, {
+  body: JSON.stringify({
+    leadId: lead.id,
+    wizardRunId: wizardRun.id,
+    // NO pdfUrl - API will generate and upload to Supabase
+    locale: data.locale || "ar",
+  }),
+})
+```
+
+**Files Changed:**
+- `app/api/wizard/run/route.ts` - Remove pdfUrl parameter
+- `app/api/whatsapp/send/route.ts` - Add ability to find lead from wizardRunId
+- `app/admin/leads/page.tsx` - Fix resend functionality
+
+---
+
+### ❌ Problem 5: Cannot Resend WhatsApp for Existing Leads
+
+**Symptoms:**
+- API returns `{"message": "Already sent"}` 
+- Cannot resend even when PDF failed
+
+**Solution:**  
+Add `force` parameter to allow resending:
+
+```typescript
+// Request body
+{
+  "wizardRunId": "xxx",
+  "locale": "ar",
+  "force": true  // ← Force resend even if already sent
+}
+```
+
+---
+
 ## Environment Variables
 
 ```env
@@ -260,10 +327,15 @@ app/api/
 ## Common Debugging Commands
 
 ```powershell
-# Test PDF generation + WhatsApp
+# Test PDF generation + WhatsApp (test endpoint)
 Invoke-RestMethod "http://localhost:3000/api/test/pdf?phone=966XXXXXXXXX"
 
-# Test WhatsApp directly
+# Resend WhatsApp for existing wizard run
+$body = '{"wizardRunId": "xxx", "locale": "ar", "force": true}'
+Invoke-RestMethod -Uri "http://localhost:3000/api/whatsapp/send" `
+  -Method POST -ContentType "application/json" -Body $body
+
+# Test WhatsApp text directly
 $body = @{
   to = "966XXXXXXXXX"
   from = "966565740429"
@@ -288,6 +360,37 @@ Invoke-RestMethod -Uri "https://wa.washeej.com/api/v1/messages" `
 4. **Supabase URLs must be public** for WhatsApp to fetch documents
 5. **Delete PDFs after sending** to avoid storage bloat
 6. **Test incrementally** - text first, then document, then both
+7. **Don't pass API URLs as pdfUrl** - let the send endpoint generate fresh PDFs
+8. **Test endpoint ≠ Production** - Always verify production code paths work
+9. **Add force parameter** for resending failed messages
+
+---
+
+## API Reference
+
+### POST /api/whatsapp/send
+
+Send PDF report via WhatsApp.
+
+**Request Body:**
+```json
+{
+  "wizardRunId": "string (required)",
+  "leadId": "string (optional - found from wizardRunId)",
+  "locale": "ar | en (default: ar)",
+  "force": "boolean (default: false - resend even if already sent)"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "whatsappStatus": "sent",
+  "textResult": { "success": true },
+  "docResult": { "success": true }
+}
+```
 
 ---
 
