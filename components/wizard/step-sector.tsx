@@ -108,9 +108,13 @@ export function StepSector({
           {t.sector}
         </Label>
         <RadioGroup 
+          dir={isRTL ? "rtl" : "ltr"}
           value={sectorId} 
           onValueChange={onSectorChange}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3"
+          className={cn(
+            "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3",
+            isRTL && "[direction:rtl]"
+          )}
         >
           {sectors.map((sector) => {
             const Icon = getSectorIcon(sector)
@@ -162,9 +166,13 @@ export function StepSector({
           {t.businessType}
         </Label>
         <RadioGroup 
+          dir={isRTL ? "rtl" : "ltr"}
           value={businessType} 
           onValueChange={onBusinessTypeChange} 
-          className="grid grid-cols-2 gap-2 sm:gap-3"
+          className={cn(
+            "grid grid-cols-2 gap-2 sm:gap-3",
+            isRTL && "[direction:rtl]"
+          )}
         >
           {businessTypes.map((type) => {
             const isSelected = businessType === type.value
