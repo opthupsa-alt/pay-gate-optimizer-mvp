@@ -170,19 +170,19 @@ export default function ProviderDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2">
-          <Tabs defaultValue="fees" className="space-y-6" dir={locale === "ar" ? "rtl" : "ltr"}>
-            <TabsList className={`grid grid-cols-4 w-full ${locale === "ar" ? "flex-row-reverse" : ""}`}>
-              <TabsTrigger value="sources">
-                {locale === "ar" ? "المصادر" : "Sources"}
-              </TabsTrigger>
-              <TabsTrigger value="reviews">
-                {locale === "ar" ? "التقييمات" : "Reviews"}
+          <Tabs defaultValue="fees" className="space-y-6">
+            <TabsList className="grid grid-cols-4 w-full">
+              <TabsTrigger value="fees">
+                {locale === "ar" ? "الرسوم" : "Fees"}
               </TabsTrigger>
               <TabsTrigger value="integrations">
                 {locale === "ar" ? "التكاملات" : "Integrations"}
               </TabsTrigger>
-              <TabsTrigger value="fees">
-                {locale === "ar" ? "الرسوم" : "Fees"}
+              <TabsTrigger value="reviews">
+                {locale === "ar" ? "التقييمات" : "Reviews"}
+              </TabsTrigger>
+              <TabsTrigger value="sources">
+                {locale === "ar" ? "المصادر" : "Sources"}
               </TabsTrigger>
             </TabsList>
 
@@ -199,13 +199,13 @@ export default function ProviderDetailPage({ params }: PageProps) {
                 </CardHeader>
                 <CardContent>
                   {provider.provider_fees && provider.provider_fees.length > 0 ? (
-                    <Table dir={locale === "ar" ? "rtl" : "ltr"} className={locale === "ar" ? "text-right" : "text-left"}>
+                    <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className={locale === "ar" ? "text-right" : "text-left"}>{locale === "ar" ? "طريقة الدفع" : "Payment Method"}</TableHead>
-                          <TableHead className={locale === "ar" ? "text-right" : "text-left"}>{locale === "ar" ? "نسبة" : "Percentage"}</TableHead>
-                          <TableHead className={locale === "ar" ? "text-right" : "text-left"}>{locale === "ar" ? "ثابت" : "Fixed"}</TableHead>
-                          <TableHead className={locale === "ar" ? "text-right" : "text-left"}>{locale === "ar" ? "ملاحظات" : "Notes"}</TableHead>
+                          <TableHead>{locale === "ar" ? "طريقة الدفع" : "Payment Method"}</TableHead>
+                          <TableHead>{locale === "ar" ? "نسبة" : "Percentage"}</TableHead>
+                          <TableHead>{locale === "ar" ? "ثابت" : "Fixed"}</TableHead>
+                          <TableHead>{locale === "ar" ? "ملاحظات" : "Notes"}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -231,12 +231,12 @@ export default function ProviderDetailPage({ params }: PageProps) {
                       </TableBody>
                     </Table>
                   ) : provider.pricing_rules && provider.pricing_rules.length > 0 ? (
-                    <Table dir={locale === "ar" ? "rtl" : "ltr"} className={locale === "ar" ? "text-right" : "text-left"}>
+                    <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className={locale === "ar" ? "text-right" : "text-left"}>{locale === "ar" ? "طريقة الدفع" : "Payment Method"}</TableHead>
-                          <TableHead className={locale === "ar" ? "text-right" : "text-left"}>{locale === "ar" ? "نسبة" : "Percentage"}</TableHead>
-                          <TableHead className={locale === "ar" ? "text-right" : "text-left"}>{locale === "ar" ? "ثابت" : "Fixed"}</TableHead>
+                          <TableHead>{locale === "ar" ? "طريقة الدفع" : "Payment Method"}</TableHead>
+                          <TableHead>{locale === "ar" ? "نسبة" : "Percentage"}</TableHead>
+                          <TableHead>{locale === "ar" ? "ثابت" : "Fixed"}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

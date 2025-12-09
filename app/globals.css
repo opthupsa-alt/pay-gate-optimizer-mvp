@@ -282,6 +282,19 @@
     text-align: right;
   }
   
+  [dir="rtl"] td {
+    text-align: right;
+  }
+  
+  [dir="rtl"] table {
+    direction: rtl;
+  }
+
+  /* Tabs RTL - tabs list should be reversed in RTL */
+  [dir="rtl"] [data-slot="tabs-list"] {
+    flex-direction: row-reverse;
+  }
+  
   /* Dialog/Alert close button */
   [dir="rtl"] [data-slot="dialog-close"],
   [dir="rtl"] [data-slot="alert-dialog-close"] {
