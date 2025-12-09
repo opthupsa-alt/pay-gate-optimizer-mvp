@@ -157,6 +157,44 @@ export const defaultSettings: Record<string, { value: string; type: SettingType;
     sortOrder: 22,
   },
 
+  // PDF - إعدادات توليد PDF
+  "pdf.provider": {
+    value: "pdfshift",
+    type: "string",
+    group: "pdf",
+    label: "مزود خدمة PDF",
+    description: "اختر المزود: pdfshift أو html2pdf أو fallback (HTML)",
+    isPublic: false,
+    sortOrder: 25,
+  },
+  "pdf.pdfshift_api_key": {
+    value: "",
+    type: "string",
+    group: "pdf",
+    label: "مفتاح PDFShift API",
+    description: "مفتاح API من موقع pdfshift.io (مجاني 50 ملف/شهر)",
+    isPublic: false,
+    sortOrder: 26,
+  },
+  "pdf.html2pdf_api_key": {
+    value: "",
+    type: "string",
+    group: "pdf",
+    label: "مفتاح HTML2PDF API",
+    description: "مفتاح API من موقع html2pdf.app (مجاني 100 ملف/شهر)",
+    isPublic: false,
+    sortOrder: 27,
+  },
+  "pdf.enabled": {
+    value: "true",
+    type: "boolean",
+    group: "pdf",
+    label: "تفعيل توليد PDF",
+    description: "تفعيل أو تعطيل توليد ملفات PDF",
+    isPublic: false,
+    sortOrder: 28,
+  },
+
   // Contact - بيانات التواصل
   "contact.email": {
     value: "info@paygate-optimizer.com",

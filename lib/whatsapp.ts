@@ -188,6 +188,8 @@ export async function sendWhatsAppDocument(
     caption,
   }
 
+  console.log("Sending WhatsApp document. URL:", docUrl, "To:", normalizePhoneForApi(to))
+
   try {
     const response = await fetch(apiUrl, {
       method: "POST",

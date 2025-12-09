@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
       branding: "العلامة التجارية",
       seo: "تحسين محركات البحث",
       whatsapp: "إعدادات الواتساب",
+      pdf: "إعدادات PDF",
       contact: "بيانات التواصل",
       social: "السوشيال ميديا",
       general: "إعدادات عامة",

@@ -18,8 +18,12 @@ export async function GET(
   try {
     const { id } = await context.params
 
-    // Validate ID format (UUID)
-    if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    // Validate ID format (UUID or CUID - Prisma uses cuid by default)
+    // UUID: 8-4-4-4-12 hex chars, CUID: 25 alphanumeric chars starting with 'c'
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    const isCUID = /^c[a-z0-9]{24}$/i.test(id)
+    
+    if (!id || (!isUUID && !isCUID)) {
       return NextResponse.json(
         { error: "Invalid report ID" },
         { status: 400 }

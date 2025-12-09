@@ -23,6 +23,7 @@ import {
   MessageCircle,
   Phone,
   Share2,
+  FileText,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -323,6 +324,7 @@ export default function SettingsPage() {
       case "whatsapp": return <MessageCircle className="h-4 w-4" />
       case "contact": return <Phone className="h-4 w-4" />
       case "social": return <Share2 className="h-4 w-4" />
+      case "pdf": return <FileText className="h-4 w-4" />
       default: return <Settings className="h-4 w-4" />
     }
   }
@@ -368,6 +370,10 @@ export default function SettingsPage() {
           <TabsTrigger value="whatsapp" className="gap-2">
             <MessageCircle className="h-4 w-4" />
             الواتساب
+          </TabsTrigger>
+          <TabsTrigger value="pdf" className="gap-2">
+            <FileText className="h-4 w-4" />
+            PDF
           </TabsTrigger>
           <TabsTrigger value="seo" className="gap-2">
             <Globe className="h-4 w-4" />
@@ -462,6 +468,72 @@ export default function SettingsPage() {
                   <Save className="h-4 w-4 me-2" />
                 )}
                 حفظ إعدادات الواتساب
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* PDF Settings */}
+        <TabsContent value="pdf">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                إعدادات توليد PDF
+              </CardTitle>
+              <CardDescription>
+                إعدادات توليد ملفات PDF الاحترافية للنتائج
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {siteSettings.pdf?.map((setting) => (
+                <div key={setting.key} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>{setting.label}</Label>
+                    {setting.type === "boolean" && renderSettingInput(setting)}
+                  </div>
+                  {setting.type !== "boolean" && (
+                    <>
+                      {renderSettingInput(setting)}
+                      {setting.key.includes("api_key") && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                          ⚠️ مفتاح API حساس - لا يظهر للمستخدمين
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {setting.description && (
+                    <p className="text-xs text-muted-foreground">{setting.description}</p>
+                  )}
+                </div>
+              ))}
+
+              {(!siteSettings.pdf || siteSettings.pdf.length === 0) && (
+                <div className="text-center py-6 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>لم يتم العثور على إعدادات PDF</p>
+                  <p className="text-sm">سيتم إنشاؤها تلقائياً عند أول استخدام</p>
+                </div>
+              )}
+
+              <Separator />
+
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <h4 className="font-medium">ملاحظات:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li><strong>PDFShift:</strong> جودة عالية، مجاني 50 ملف/شهر - <a href="https://pdfshift.io" target="_blank" className="text-primary hover:underline">pdfshift.io</a></li>
+                  <li><strong>HTML2PDF:</strong> بديل جيد، مجاني 100 ملف/شهر - <a href="https://html2pdf.app" target="_blank" className="text-primary hover:underline">html2pdf.app</a></li>
+                  <li>إذا لم يتوفر مزود، سيتم إرسال رابط النتائج بدلاً من PDF</li>
+                </ul>
+              </div>
+
+              <Button onClick={() => handleSaveSiteSettings("pdf")} disabled={isSaving}>
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin me-2" />
+                ) : (
+                  <Save className="h-4 w-4 me-2" />
+                )}
+                حفظ إعدادات PDF
               </Button>
             </CardContent>
           </Card>
