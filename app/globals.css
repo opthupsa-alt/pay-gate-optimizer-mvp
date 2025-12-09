@@ -277,22 +277,24 @@
     right: auto;
   }
   
-  /* Table text alignment */
-  [dir="rtl"] th {
-    text-align: right;
-  }
-  
-  [dir="rtl"] td {
-    text-align: right;
-  }
-  
-  [dir="rtl"] table {
+  /* Table RTL - proper alignment */
+  [dir="rtl"] table,
+  [dir="rtl"] thead,
+  [dir="rtl"] tbody,
+  [dir="rtl"] tr {
     direction: rtl;
+    text-align: right;
+  }
+  
+  [dir="rtl"] th,
+  [dir="rtl"] td {
+    text-align: right !important;
   }
 
-  /* Tabs RTL - tabs list should be reversed in RTL */
+  /* Tabs RTL - ensure proper direction */
+  [dir="rtl"] [data-slot="tabs"],
   [dir="rtl"] [data-slot="tabs-list"] {
-    flex-direction: row-reverse;
+    direction: rtl;
   }
   
   /* Dialog/Alert close button */

@@ -170,7 +170,7 @@ export default function ProviderDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2">
-          <Tabs defaultValue="fees" className="space-y-6">
+          <Tabs defaultValue="fees" className="space-y-6" dir={locale === "ar" ? "rtl" : "ltr"}>
             <TabsList className="grid grid-cols-4 w-full">
               <TabsTrigger value="fees">
                 {locale === "ar" ? "الرسوم" : "Fees"}
