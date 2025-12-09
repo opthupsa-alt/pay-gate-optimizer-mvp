@@ -358,6 +358,48 @@ export default function ResultsPage() {
     },
   }
 
+  // Bilingual reasons/caveats mapping for dynamic translation
+  const reasonsTranslations: Record<string, { ar: string; en: string }> = {
+    // Reasons
+    "يدعم مدى": { ar: "يدعم مدى", en: "Supports Mada" },
+    "Supports Mada": { ar: "يدعم مدى", en: "Supports Mada" },
+    "يدعم Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+    "Supports Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+    "يدعم قطاعك": { ar: "يدعم قطاعك", en: "Supports your sector" },
+    "Supports your sector": { ar: "يدعم قطاعك", en: "Supports your sector" },
+    "تفعيل سريع": { ar: "تفعيل سريع", en: "Fast activation" },
+    "Fast activation": { ar: "تفعيل سريع", en: "Fast activation" },
+    "دعم فني ممتاز": { ar: "دعم فني ممتاز", en: "Excellent support" },
+    "Excellent support": { ar: "دعم فني ممتاز", en: "Excellent support" },
+  }
+
+  // Translate a reason/caveat to current locale
+  const translateText = (text: string): string => {
+    // Check if it's a known phrase
+    if (reasonsTranslations[text]) {
+      return reasonsTranslations[text][locale]
+    }
+    // Handle fee patterns: "رسوم تسجيل: X ﷼" or "Setup fee: X ﷼"
+    const setupFeeAr = text.match(/رسوم تسجيل:\s*([\d,]+)\s*﷼/)
+    if (setupFeeAr) {
+      return locale === "ar" ? text : `Setup fee: ${setupFeeAr[1]} SAR`
+    }
+    const setupFeeEn = text.match(/Setup fee:\s*([\d,]+)\s*(?:﷼|SAR)/)
+    if (setupFeeEn) {
+      return locale === "en" ? text : `رسوم تسجيل: ${setupFeeEn[1]} ﷼`
+    }
+    const monthlyFeeAr = text.match(/رسوم شهرية:\s*([\d,]+)\s*﷼/)
+    if (monthlyFeeAr) {
+      return locale === "ar" ? text : `Monthly fee: ${monthlyFeeAr[1]} SAR`
+    }
+    const monthlyFeeEn = text.match(/Monthly fee:\s*([\d,]+)\s*(?:﷼|SAR)/)
+    if (monthlyFeeEn) {
+      return locale === "en" ? text : `رسوم شهرية: ${monthlyFeeEn[1]} ﷼`
+    }
+    // Return original if no translation found
+    return text
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-SA", {
       minimumFractionDigits: 2,
@@ -624,7 +666,7 @@ export default function ResultsPage() {
                       {rec.reasons.map((reason, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
                           <Zap className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 text-emerald-500 shrink-0" />
-                          <span>{reason}</span>
+                          <span>{translateText(reason)}</span>
                         </li>
                       ))}
                     </ul>
@@ -641,7 +683,7 @@ export default function ResultsPage() {
                       {rec.caveats.map((caveat, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
                           <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 text-amber-500 shrink-0" />
-                          <span>{caveat}</span>
+                          <span>{translateText(caveat)}</span>
                         </li>
                       ))}
                     </ul>
