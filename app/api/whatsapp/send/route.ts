@@ -6,7 +6,7 @@ import { uploadPDFToStorage, deletePDFFromStorage } from "@/lib/pdf-upload"
 import type { Recommendation, WizardFormData, PaymentMix, WizardNeeds, CostBreakdown } from "@/lib/types"
 
 interface SendRequest {
-  leadId: string
+  leadId?: string  // Optional - can be found from wizardRunId
   wizardRunId: string
   pdfUrl?: string // Optional - will be generated and uploaded to Supabase
   locale?: "ar" | "en"
@@ -19,20 +19,38 @@ interface SendRequest {
  * This is called after wizard submission to deliver PDF results
  * 
  * If pdfUrl is not provided, generates PDF automatically
+ * If leadId is not provided, finds lead from wizardRunId
  */
 export async function POST(request: NextRequest) {
   try {
     const body: SendRequest = await request.json()
-    const { leadId, wizardRunId, locale = "ar" } = body
+    let { leadId, wizardRunId, locale = "ar" } = body
     let { pdfUrl } = body
     let pdfFilePath: string | undefined // Track file path for cleanup after send
 
     // Validate required fields
-    if (!leadId || !wizardRunId) {
+    if (!wizardRunId) {
       return NextResponse.json(
-        { error: "Missing required fields: leadId, wizardRunId" },
+        { error: "Missing required field: wizardRunId" },
         { status: 400 }
       )
+    }
+
+    // If leadId not provided, find it from wizardRunId
+    if (!leadId) {
+      const lead = await prisma.lead.findFirst({
+        where: { wizardRunId },
+        select: { id: true },
+      })
+      if (lead) {
+        leadId = lead.id
+        console.log("Found lead from wizardRunId:", leadId)
+      } else {
+        return NextResponse.json(
+          { error: "No lead found for this wizardRunId" },
+          { status: 404 }
+        )
+      }
     }
 
     // Get lead from database
