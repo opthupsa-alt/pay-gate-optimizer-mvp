@@ -84,10 +84,18 @@ interface ResultData {
   isMock?: boolean
 }
 
+// Helper to get locale from cookie (client-side)
+function getLocaleFromCookie(): "ar" | "en" {
+  if (typeof document === "undefined") return "ar"
+  const match = document.cookie.match(/locale=(ar|en)/)
+  return (match?.[1] as "ar" | "en") || "ar"
+}
+
 export default function ResultsPage() {
   const params = useParams()
   const [data, setData] = useState<ResultData | null>(null)
-  const [locale, setLocale] = useState<"ar" | "en">("ar")
+  // Read locale from cookie (site language), not from wizardRun
+  const [locale, setLocale] = useState<"ar" | "en">(getLocaleFromCookie())
   const [isExporting, setIsExporting] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showLeadForm, setShowLeadForm] = useState(false)
@@ -100,6 +108,11 @@ export default function ResultsPage() {
   })
   const [isSubmittingLead, setIsSubmittingLead] = useState(false)
 
+  // Update locale when cookie changes (after language toggle)
+  useEffect(() => {
+    setLocale(getLocaleFromCookie())
+  }, [])
+
   useEffect(() => {
     async function loadResults() {
       setIsLoading(true)
@@ -109,7 +122,7 @@ export default function ResultsPage() {
       if (storedData) {
         const parsed = JSON.parse(storedData)
         setData(parsed)
-        setLocale(parsed.wizardRun?.locale || "ar")
+        // Don't set locale here - we read it from cookie (site language)
         setIsLoading(false)
         return
       }
@@ -120,7 +133,7 @@ export default function ResultsPage() {
         if (response.ok) {
           const apiData = await response.json()
           setData(apiData)
-          setLocale(apiData.wizardRun?.locale || "ar")
+          // Don't set locale here - we read it from cookie (site language)
           // Cache in sessionStorage for future use
           sessionStorage.setItem(`wizard-result-${params.id}`, JSON.stringify(apiData))
         }
