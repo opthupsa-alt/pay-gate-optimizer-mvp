@@ -179,8 +179,8 @@ export default async function HomePage() {
                 <h3 className="mb-2 text-lg font-semibold">{step.title}</h3>
                 <p className="text-sm text-muted-foreground">{step.description}</p>
                 {index < 2 && (
-                  <div className="absolute end-0 top-8 hidden w-full -translate-y-1/2 translate-x-1/2 md:block">
-                    <Arrow className="mx-auto h-6 w-6 text-muted-foreground/30" />
+                  <div className={`absolute top-8 hidden -translate-y-1/2 md:block ${isRTL ? 'start-0 -translate-x-1/2' : 'end-0 translate-x-1/2'}`}>
+                    <Arrow className="mx-auto h-6 w-6 text-muted-foreground/50" />
                   </div>
                 )}
               </div>
