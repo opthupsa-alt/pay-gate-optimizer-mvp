@@ -197,8 +197,8 @@ async function generateWithPDFShift(html: string, locale: 'ar' | 'en', apiKey: s
           left: '15mm',
           right: '15mm',
         },
-        // Enable Arabic support
-        wait_for: 'fonts',
+        // Wait for page to fully load (use delay in ms, not 'fonts')
+        delay: 2000,
         // Add custom styles for RTL
         css: locale === 'ar' ? `
           * { direction: rtl; text-align: right; }
