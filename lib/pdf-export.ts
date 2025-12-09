@@ -623,6 +623,24 @@ export function generatePDFContent(options: PDFExportOptions): string {
         <div class="disclaimer">
           ${t.disclaimer}
         </div>
+        
+        <!-- شعار الشركة المالكة -->
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+          <a href="https://op-target.com" target="_blank" style="text-decoration: none; display: inline-block;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <img src="https://op-target.com/logo.png" alt="الهدف الأمثل للتسويق" style="height: 50px; width: auto;" onerror="this.style.display='none'"/>
+              <div style="text-align: center;">
+                <p style="font-size: 11px; color: #6b7280; margin: 0;">
+                  ${isRTL ? 'منصة تابعة لـ' : 'A platform by'}
+                </p>
+                <p style="font-size: 13px; color: #1f2937; font-weight: 600; margin: 4px 0 0 0;">
+                  ${isRTL ? 'الهدف الأمثل لتطوير الأعمال' : 'Marketing Optimum Target'}
+                </p>
+                <p style="font-size: 10px; color: #10b981; margin: 2px 0 0 0;">op-target.com</p>
+              </div>
+            </div>
+          </a>
+        </div>
       </div>
     </body>
     </html>
