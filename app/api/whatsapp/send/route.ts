@@ -125,6 +125,14 @@ export async function POST(request: NextRequest) {
           )
         }
 
+        // ALWAYS use locale from wizardRun (stored at comparison time)
+        // This ensures PDF and WhatsApp messages match the user's original language
+        // wizardRun.locale is the source of truth for the user's selected language
+        if (wizardRun.locale) {
+          locale = wizardRun.locale as "ar" | "en"
+          console.log("Using locale from wizardRun:", locale)
+        }
+
         // Build recommendations array
         const recommendations: Recommendation[] = wizardRun.recommendations.map((rec) => ({
           id: rec.id,

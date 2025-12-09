@@ -191,6 +191,13 @@ export async function POST(request: NextRequest) {
       wizardRunId: wizardRun.id,
       leadId,
       recommendations: recommendations.slice(0, 5), // Top 5
+      // Include wizardRun data for results page (locale, GMV, etc.)
+      wizardRun: {
+        monthly_gmv: data.monthly_gmv,
+        tx_count: data.tx_count,
+        avg_ticket: data.avg_ticket,
+        locale: data.locale || "ar",
+      },
     })
   } catch (error) {
     console.error("Wizard API error:", error instanceof Error ? error.message : "Unknown error")

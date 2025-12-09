@@ -1,6 +1,6 @@
 # WhatsApp PDF Integration - Developer Documentation
 
-> **Last Updated:** December 9, 2025  
+> **Last Updated:** December 10, 2025  
 > **Author:** AI Assistant (Claude)  
 > **Status:** ✅ Working
 
@@ -246,6 +246,68 @@ Add `force` parameter to allow resending:
   "force": true  // ← Force resend even if already sent
 }
 ```
+
+---
+
+### ❌ Problem 6: English Version Shows Arabic Results
+
+**Symptoms:**
+- User selects English language
+- Results page shows Arabic translations
+- PDF and WhatsApp messages sent in Arabic
+
+**Root Cause:**  
+1. `/api/wizard/run` response didn't include `wizardRun.locale`
+2. Results page defaulted to Arabic: `setLocale(data.wizardRun?.locale || "ar")`
+3. `/api/whatsapp/send` only used `wizardRun.locale` if `body.locale` was not provided
+
+**Solution:**  
+
+**A) Add `wizardRun` to API response:**
+```typescript
+// app/api/wizard/run/route.ts
+return NextResponse.json({
+  wizardRunId: wizardRun.id,
+  leadId,
+  recommendations: recommendations.slice(0, 5),
+  // ✅ Include wizardRun data for results page
+  wizardRun: {
+    monthly_gmv: data.monthly_gmv,
+    tx_count: data.tx_count,
+    avg_ticket: data.avg_ticket,
+    locale: data.locale || "ar",  // ← User's selected language
+  },
+})
+```
+
+**B) Always use `wizardRun.locale` as source of truth:**
+```typescript
+// app/api/whatsapp/send/route.ts
+// ALWAYS use locale from wizardRun (stored at comparison time)
+if (wizardRun.locale) {
+  locale = wizardRun.locale as "ar" | "en"
+  console.log("Using locale from wizardRun:", locale)
+}
+```
+
+**Locale Flow:**
+```
+User selects language → Cookie "locale"
+                       ↓
+WizardPage reads cookie → passes to WizardForm
+                          ↓
+WizardForm includes locale in formData
+                          ↓
+/api/wizard/run saves locale to WizardRun table
+                          ↓
+Results page reads wizardRun.locale → displays correct translations
+                          ↓
+/api/whatsapp/send reads wizardRun.locale → generates PDF/messages in correct language
+```
+
+**Files Changed:**
+- `app/api/wizard/run/route.ts` - Add wizardRun to response
+- `app/api/whatsapp/send/route.ts` - Always use wizardRun.locale
 
 ---
 
