@@ -10,6 +10,7 @@ interface SendRequest {
   wizardRunId: string
   pdfUrl?: string // Optional - will be generated and uploaded to Supabase
   locale?: "ar" | "en"
+  force?: boolean // Force resend even if already sent
 }
 
 /**
@@ -65,11 +66,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if already sent
-    if (lead.whatsappStatus === "sent") {
+    // Check if already sent - allow resend with force parameter
+    const forceResend = body.force === true
+    if (lead.whatsappStatus === "sent" && !forceResend) {
       return NextResponse.json({
         success: true,
-        message: "Already sent",
+        message: "Already sent. Use force=true to resend.",
         whatsappStatus: "sent",
       })
     }
