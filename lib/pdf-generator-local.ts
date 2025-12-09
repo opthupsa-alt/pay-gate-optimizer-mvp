@@ -7,7 +7,7 @@
  * المميزات:
  * - لا حاجة لأي خدمة خارجية
  * - سريع جداً
- * - دعم كامل للعربية مع RTL
+ * - دعم كامل للعربية مع RTL باستخدام bidi-js
  * - تحكم كامل بالتصميم
  * - مجاني 100%
  */
@@ -15,7 +15,12 @@
 import PDFDocument from 'pdfkit'
 import path from 'path'
 import fs from 'fs'
+// @ts-ignore - bidi-js types
+import bidiFactory from 'bidi-js'
 import type { Recommendation, WizardFormData } from './types'
+
+// Initialize bidi processor for RTL text
+const bidi = bidiFactory()
 
 // ==================== Types ====================
 
@@ -49,18 +54,61 @@ const COLORS = {
 // ==================== Helper Functions ====================
 
 /**
- * Reverse text for RTL rendering in PDFKit
- * PDFKit doesn't support RTL natively, so we need to reverse Arabic text
+ * Process Arabic text for correct RTL display in PDFKit
+ * 
+ * PDFKit doesn't support RTL natively. This function:
+ * 1. Reverses Arabic words correctly
+ * 2. Keeps numbers and English text in correct order
+ * 3. Handles mixed Arabic-English text
+ */
+function processArabicText(text: string): string {
+  if (!text) return ''
+  
+  // Check if text contains Arabic characters
+  const hasArabic = /[\u0600-\u06FF]/.test(text)
+  
+  if (!hasArabic) {
+    return text // Return as-is for non-Arabic text
+  }
+  
+  try {
+    // Get embedding levels for RTL processing
+    const embeddingLevels = bidi.getEmbeddingLevels(text, 'rtl')
+    
+    // Get the reorder segments
+    const segments = bidi.getReorderSegments(text, embeddingLevels)
+    
+    // Convert text to array for manipulation
+    const chars = [...text]
+    
+    // Apply each reordering segment (reverse in place)
+    for (const segment of segments) {
+      const [start, end] = segment
+      // Reverse this segment
+      let left = start
+      let right = end
+      while (left < right) {
+        [chars[left], chars[right]] = [chars[right], chars[left]]
+        left++
+        right--
+      }
+    }
+    
+    // For PDFKit rendering, reverse the entire result
+    return chars.reverse().join('')
+  } catch (error) {
+    console.error('Bidi processing error:', error)
+    // Fallback: simple character reversal for Arabic-only text
+    return text.split('').reverse().join('')
+  }
+}
+
+/**
+ * Legacy function name for compatibility
+ * @deprecated Use processArabicText instead
  */
 function reverseArabicText(text: string): string {
-  // Split by spaces, reverse each word's characters, then reverse word order
-  return text.split(' ').map(word => {
-    // Check if word contains Arabic
-    if (/[\u0600-\u06FF]/.test(word)) {
-      return word.split('').reverse().join('')
-    }
-    return word
-  }).reverse().join(' ')
+  return processArabicText(text)
 }
 
 /**

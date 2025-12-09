@@ -111,41 +111,13 @@ export function clearPDFSettingsCache() {
  * Generate a professional PDF from wizard results
  * 
  * الأولوية:
- * 1. المولد المحلي (PDFKit) - الأسرع والأفضل
- * 2. PDFShift API - احتياطي
- * 3. HTML2PDF API - احتياطي ثاني
+ * 1. PDFShift API للعربية - يدعم RTL بشكل كامل
+ * 2. المولد المحلي (PDFKit) للإنجليزية
+ * 3. HTML2PDF API - احتياطي
  * 4. HTML fallback - الأخير
  */
 export async function generateProfessionalPDF(options: PDFGenerationOptions): Promise<PDFResult> {
   const { locale, wizardData, recommendations, sectorName } = options
-  
-  // Try local PDF generator first (no API needed!)
-  console.log('Trying local PDF generator (PDFKit)...')
-  try {
-    const { generateLocalPDF } = await import('./pdf-generator-local')
-    const localResult = await generateLocalPDF({
-      locale,
-      wizardData,
-      recommendations,
-      sectorName,
-    })
-    
-    if (localResult.success && localResult.pdfBuffer) {
-      console.log('Local PDF generated successfully!')
-      return {
-        success: true,
-        pdfBuffer: localResult.pdfBuffer,
-        pdfBase64: localResult.pdfBase64,
-        method: 'pdfshift', // We'll use this for compatibility
-      }
-    }
-    console.warn('Local PDF failed:', localResult.error)
-  } catch (error) {
-    console.warn('Local PDF generator not available:', error)
-  }
-  
-  // Fallback to external APIs
-  console.log('Falling back to external PDF APIs...')
   
   // Get settings from database
   const settings = await getPDFSettings()
@@ -170,7 +142,44 @@ export async function generateProfessionalPDF(options: PDFGenerationOptions): Pr
     ? htmlContent.replace('</head>', `<meta name="sector" content="${sectorName}"></head>`)
     : htmlContent
   
-  // Use configured provider
+  // For Arabic, use PDFShift first (better RTL support)
+  if (locale === 'ar' && settings.pdfshiftApiKey) {
+    console.log('Using PDFShift for Arabic (better RTL support)...')
+    const result = await generateWithPDFShift(finalHtml, locale, settings.pdfshiftApiKey)
+    if (result.success) {
+      console.log('PDFShift succeeded for Arabic!')
+      return result
+    }
+    console.warn('PDFShift failed for Arabic, trying local generator...')
+  }
+  
+  // Try local PDF generator (good for English, fallback for Arabic)
+  console.log('Trying local PDF generator (PDFKit)...')
+  try {
+    const { generateLocalPDF } = await import('./pdf-generator-local')
+    const localResult = await generateLocalPDF({
+      locale,
+      wizardData,
+      recommendations,
+      sectorName,
+    })
+    
+    if (localResult.success && localResult.pdfBuffer) {
+      console.log('Local PDF generated successfully!')
+      return {
+        success: true,
+        pdfBuffer: localResult.pdfBuffer,
+        pdfBase64: localResult.pdfBase64,
+        method: 'pdfshift', // We'll use this for compatibility
+      }
+    }
+    console.warn('Local PDF failed:', localResult.error)
+  } catch (error) {
+    console.warn('Local PDF generator not available:', error)
+  }
+  
+  // Fallback to external APIs for English
+  console.log('Falling back to external PDF APIs...')
   console.log('PDF generation settings:', { provider: settings.provider, hasPdfshiftKey: !!settings.pdfshiftApiKey, hasHtml2pdfKey: !!settings.html2pdfApiKey })
   
   if (settings.provider === 'pdfshift' && settings.pdfshiftApiKey) {

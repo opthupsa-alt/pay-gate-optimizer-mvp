@@ -104,12 +104,18 @@ importers:
       '@vercel/analytics':
         specifier: latest
         version: 1.5.0(next@16.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(react@19.2.1)
+      arabic-reshaper:
+        specifier: ^1.1.0
+        version: 1.1.0
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.22(postcss@8.5.6)
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
+      bidi-js:
+        specifier: ^1.0.3
+        version: 1.0.3
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1500,6 +1506,9 @@ packages:
       vue-router:
         optional: true
 
+  arabic-reshaper@1.1.0:
+    resolution: {integrity: sha512-DfF1CxCCgLi0XsqHFdr2cdi/7qEoupT76+6Q2vPPWroS6dinvKbomKMZD9AYxKAb+SXK+UYFuS3iBD0/ZVOzyw==}
+
   aria-hidden@1.2.6:
     resolution: {integrity: sha512-ik3ZgC9dY/lYVVM++OISsaYDeg1tb0VtP5uL3ouh1koGOaUMDPpbFIei4JkFimWUFPn90sbMNMXQAIVOlnYKJA==}
     engines: {node: '>=10'}
@@ -1525,6 +1534,9 @@ packages:
   bcryptjs@3.0.3:
     resolution: {integrity: sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==}
     hasBin: true
+
+  bidi-js@1.0.3:
+    resolution: {integrity: sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw==}
 
   brotli@1.3.3:
     resolution: {integrity: sha512-oTKjJdShmDuGW94SyyaoQvAjf30dZaHnjJ8uAF+u2/vGJkJbJPJAT1gDiOJP5v1Zb6f9KEyW/1HpuaWIXtGHPg==}
@@ -2026,6 +2038,10 @@ packages:
     peerDependencies:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  require-from-string@2.0.2:
+    resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
+    engines: {node: '>=0.10.0'}
 
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
@@ -3332,6 +3348,8 @@ snapshots:
       next: 16.0.7(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       react: 19.2.1
 
+  arabic-reshaper@1.1.0: {}
+
   aria-hidden@1.2.6:
     dependencies:
       tslib: 2.8.1
@@ -3353,6 +3371,10 @@ snapshots:
   baseline-browser-mapping@2.8.31: {}
 
   bcryptjs@3.0.3: {}
+
+  bidi-js@1.0.3:
+    dependencies:
+      require-from-string: 2.0.2
 
   brotli@1.3.3:
     dependencies:
@@ -3833,6 +3855,8 @@ snapshots:
       recharts-scale: 0.4.5
       tiny-invariant: 1.3.3
       victory-vendor: 36.9.2
+
+  require-from-string@2.0.2: {}
 
   resolve-pkg-maps@1.0.0: {}
 
