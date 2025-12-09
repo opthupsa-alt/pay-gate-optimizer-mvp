@@ -3,6 +3,9 @@
 
 import type { Recommendation, WizardFormData, Provider } from "./types"
 
+// SVG for Saudi Riyal symbol - matches the one used in the website
+const SAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" class="sar-symbol" aria-label="SAR"><path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"/><path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"/></svg>`
+
 interface PDFExportOptions {
   locale: "ar" | "en"
   wizardData?: WizardFormData
@@ -398,6 +401,20 @@ export function generatePDFContent(options: PDFExportOptions): string {
         page-break-inside: avoid;
       }
     }
+    
+    /* SAR Symbol styling */
+    .sar-symbol {
+      display: inline-block;
+      width: 0.9em;
+      height: 0.9em;
+      vertical-align: middle;
+      margin: 0 2px;
+    }
+    
+    .rec-cost .sar-symbol {
+      width: 1em;
+      height: 1em;
+    }
   `
 
   const recommendationsHTML = recommendations.map((rec, index) => {
@@ -415,7 +432,7 @@ export function generatePDFContent(options: PDFExportOptions): string {
           </div>
           <div class="rec-cost">
             <label>${t.monthlyCost}</label>
-            <value>${formatCurrency(rec.expected_cost_min, locale)} - ${formatCurrency(rec.expected_cost_max, locale)} ${t.currency}</value>
+            <value>${formatCurrency(rec.expected_cost_min, locale)} - ${formatCurrency(rec.expected_cost_max, locale)} ${SAR_SVG}</value>
           </div>
         </div>
         
@@ -491,7 +508,7 @@ export function generatePDFContent(options: PDFExportOptions): string {
                     return `
                       <tr style="background: #f9fafb;">
                         <td colspan="3" style="font-weight: 600;">${locale === "ar" ? "رسوم شهرية ثابتة" : "Monthly Fixed Fee"}</td>
-                        <td>${formatCurrency(feeAmount, locale)} ${t.currency}</td>
+                        <td>${formatCurrency(feeAmount, locale)} ${SAR_SVG}</td>
                       </tr>
                     `
                   }
@@ -500,8 +517,8 @@ export function generatePDFContent(options: PDFExportOptions): string {
                     <tr>
                       <td>${getPaymentMethodName(paymentMethod, locale)}</td>
                       <td>${txCount.toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}</td>
-                      <td>${formatCurrency(volume, locale)} ${t.currency}</td>
-                      <td>${formatCurrency(feeAmount, locale)} ${t.currency}</td>
+                      <td>${formatCurrency(volume, locale)} ${SAR_SVG}</td>
+                      <td>${formatCurrency(feeAmount, locale)} ${SAR_SVG}</td>
                     </tr>
                   `
                 }).join('')}
@@ -523,7 +540,7 @@ export function generatePDFContent(options: PDFExportOptions): string {
     <div class="metadata">
       <div class="metadata-item">
         <label>${t.monthlyVolume}</label>
-        <value>${formatCurrency(wizardData.monthly_gmv, locale)} ${t.currency}</value>
+        <value>${formatCurrency(wizardData.monthly_gmv, locale)} ${SAR_SVG}</value>
       </div>
       <div class="metadata-item">
         <label>${t.transactionCount}</label>
@@ -531,7 +548,7 @@ export function generatePDFContent(options: PDFExportOptions): string {
       </div>
       <div class="metadata-item">
         <label>${t.avgTicket}</label>
-        <value>${formatCurrency(wizardData.avg_ticket, locale)} ${t.currency}</value>
+        <value>${formatCurrency(wizardData.avg_ticket, locale)} ${SAR_SVG}</value>
       </div>
     </div>
   ` : ''
@@ -642,7 +659,6 @@ const translations = {
     recommendations: "التوصيات",
     ranks: ["الأفضل", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع", "الخيار الخامس"],
     monthlyCost: "التكلفة الشهرية المتوقعة",
-    currency: "﷼",
     scores: {
       total: "الإجمالي",
       cost: "التكلفة",
@@ -670,7 +686,6 @@ const translations = {
     recommendations: "Recommendations",
     ranks: ["Best Choice", "Second Option", "Third Option", "Fourth Option", "Fifth Option"],
     monthlyCost: "Expected Monthly Cost",
-    currency: "﷼",
     scores: {
       total: "Total",
       cost: "Cost",
