@@ -137,11 +137,12 @@ export async function GET(request: NextRequest) {
       // Wait a moment
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Then send the document
+      // Then send the document (with filename!)
       const docResult = await sendWhatsAppDocument(
         testPhone,
         uploadResult.publicUrl,
-        "📄 تقرير تجريبي - Test Report"
+        "📄 تقرير تجريبي - Test Report",
+        "paygate-test-report.pdf"  // filename مطلوب!
       )
       console.log("WhatsApp document result:", docResult)
       
