@@ -96,6 +96,50 @@ export default function ProviderDetailPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto py-8 px-4">
+      {/* Cover Image */}
+      {provider.cover_image_url && (
+        <div className="relative w-full h-48 md:h-64 lg:h-80 mb-8 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
+          <img 
+            src={provider.cover_image_url} 
+            alt={`${locale === "ar" ? provider.name_ar : provider.name_en} cover`}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+          
+          {/* Logo overlay on cover */}
+          {provider.logo_url && (
+            <div className="absolute bottom-4 start-4 md:bottom-6 md:start-6">
+              <div className="w-16 h-16 md:w-24 md:h-24 rounded-xl bg-background/90 backdrop-blur-sm p-2 shadow-lg border">
+                <img 
+                  src={provider.logo_url} 
+                  alt={locale === "ar" ? provider.name_ar : provider.name_en}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Default header with gradient if no cover image */}
+      {!provider.cover_image_url && (
+        <div className="relative w-full h-32 md:h-48 mb-8 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/30 via-primary/10 to-background flex items-center justify-center">
+          {provider.logo_url ? (
+            <div className="w-20 h-20 md:w-32 md:h-32 rounded-xl bg-background/90 backdrop-blur-sm p-3 shadow-lg border">
+              <img 
+                src={provider.logo_url} 
+                alt={locale === "ar" ? provider.name_ar : provider.name_en}
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <div className="w-20 h-20 md:w-32 md:h-32 rounded-xl bg-primary/20 flex items-center justify-center">
+              <Building2 className="w-10 h-10 md:w-16 md:h-16 text-primary" />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <nav className="mb-6 text-sm text-muted-foreground">
         <Link href="/providers" className="hover:text-primary">
