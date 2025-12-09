@@ -24,7 +24,9 @@ import {
   type Country,
   normalizePhoneNumber,
   isValidPhoneNumber,
-  findCountryByDialCode
+  findCountryByDialCode,
+  detectCountryFromNumber,
+  formatPhoneAsYouType,
 } from "@/lib/countries"
 
 export interface PhoneInputValue {
@@ -56,13 +58,18 @@ export function PhoneInput({
   const [open, setOpen] = React.useState(false)
   const [selectedCountry, setSelectedCountry] = React.useState<Country>(defaultCountry)
   const [phoneNumber, setPhoneNumber] = React.useState("")
+  const [displayValue, setDisplayValue] = React.useState("") // Formatted display
   const [searchQuery, setSearchQuery] = React.useState("")
+  const inputRef = React.useRef<HTMLInputElement>(null)
   const isRTL = locale === "ar"
 
   // Initialize from value prop
   React.useEffect(() => {
     if (value?.raw && !phoneNumber) {
       setPhoneNumber(value.raw)
+      // Format for display
+      const formatted = formatPhoneAsYouType(value.raw, value.countryCode || "966")
+      setDisplayValue(formatted)
       if (value.countryCode) {
         const country = findCountryByDialCode(value.countryCode)
         if (country) setSelectedCountry(country)
@@ -84,18 +91,67 @@ export function PhoneInput({
     })
   }, [searchQuery, locale])
 
-  // Handle phone number change
+  // Handle phone number input change (with live formatting)
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value
-    setPhoneNumber(raw)
     
-    const normalized = normalizePhoneNumber(raw, selectedCountry.dialCode)
+    // Format as user types
+    const formatted = formatPhoneAsYouType(raw, selectedCountry.dialCode)
+    setDisplayValue(formatted)
+    
+    // Store raw digits
+    const digits = raw.replace(/\D/g, "")
+    setPhoneNumber(digits)
+    
+    const normalized = normalizePhoneNumber(digits, selectedCountry.dialCode)
     const isValid = isValidPhoneNumber(normalized)
     
     onChange?.({
-      raw,
+      raw: digits,
       normalized,
       countryCode: selectedCountry.dialCode,
+      isValid,
+    })
+  }
+
+  // Handle paste event - auto-detect country and format
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    
+    const pastedText = e.clipboardData.getData("text")
+    const digits = pastedText.replace(/\D/g, "")
+    
+    // Try to detect country from pasted number
+    let detectedCountry = detectCountryFromNumber(digits)
+    let localDigits = digits
+    
+    if (detectedCountry) {
+      // Update country selector
+      setSelectedCountry(detectedCountry)
+      // Remove country code from digits
+      localDigits = digits.slice(detectedCountry.dialCode.length)
+    } else {
+      // Keep current country, handle local format
+      detectedCountry = selectedCountry
+      // Remove leading 0 if present
+      if (digits.startsWith("0")) {
+        localDigits = digits.slice(1)
+      }
+    }
+    
+    // Format the number
+    const formatted = formatPhoneAsYouType(localDigits, detectedCountry.dialCode)
+    setDisplayValue(formatted)
+    setPhoneNumber(localDigits)
+    
+    // Notify parent
+    const normalized = normalizePhoneNumber(localDigits, detectedCountry.dialCode)
+    const isValid = isValidPhoneNumber(normalized)
+    
+    onChange?.({
+      raw: localDigits,
+      normalized,
+      countryCode: detectedCountry.dialCode,
       isValid,
     })
   }
@@ -105,6 +161,10 @@ export function PhoneInput({
     setSelectedCountry(country)
     setOpen(false)
     setSearchQuery("")
+    
+    // Re-format with new country code
+    const formatted = formatPhoneAsYouType(phoneNumber, country.dialCode)
+    setDisplayValue(formatted)
     
     // Re-normalize with new country code
     const normalized = normalizePhoneNumber(phoneNumber, country.dialCode)
@@ -118,7 +178,7 @@ export function PhoneInput({
     })
   }
 
-  const defaultPlaceholder = locale === "ar" ? "رقم الواتساب" : "WhatsApp Number"
+  const defaultPlaceholder = locale === "ar" ? "56 403 9942" : "56 403 9942"
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
@@ -193,14 +253,16 @@ export function PhoneInput({
 
         {/* Phone Number Input */}
         <Input
+          ref={inputRef}
           type="tel"
           inputMode="tel"
-          value={phoneNumber}
+          value={displayValue}
           onChange={handlePhoneChange}
+          onPaste={handlePaste}
           disabled={disabled}
           placeholder={placeholder || defaultPlaceholder}
           className={cn(
-            "flex-1 border-0 rounded-l-none h-11 text-base",
+            "flex-1 border-0 rounded-l-none h-11 text-base tabular-nums tracking-wide",
             "focus-visible:ring-0 focus-visible:ring-offset-0",
             "placeholder:text-muted-foreground/60"
           )}
@@ -217,10 +279,10 @@ export function PhoneInput({
         </p>
       )}
 
-      {/* Helper text showing normalized format */}
+      {/* Helper text showing full international format */}
       {phoneNumber && !error && (
-        <p className="text-xs text-muted-foreground" dir="ltr">
-          {normalizePhoneNumber(phoneNumber, selectedCountry.dialCode)}
+        <p className="text-xs text-muted-foreground tabular-nums" dir="ltr">
+          +{selectedCountry.dialCode} {displayValue} → {normalizePhoneNumber(phoneNumber, selectedCountry.dialCode)}
         </p>
       )}
     </div>

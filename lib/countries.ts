@@ -146,3 +146,145 @@ export function formatPhoneForDisplay(normalizedPhone: string, countryCode: stri
   
   return localNumber
 }
+
+/**
+ * Detect country from phone number
+ * Returns the country that matches the phone number's prefix
+ */
+export function detectCountryFromNumber(phone: string): Country | undefined {
+  // Clean the input
+  let digits = phone.replace(/\D/g, "")
+  
+  // Remove leading 00 (international prefix)
+  if (digits.startsWith("00")) {
+    digits = digits.slice(2)
+  }
+  
+  // Try to find matching country by dial code
+  // Sort countries by dial code length (longer first) to match most specific
+  const sortedCountries = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length)
+  
+  for (const country of sortedCountries) {
+    if (digits.startsWith(country.dialCode)) {
+      return country
+    }
+  }
+  
+  return undefined
+}
+
+/**
+ * Format phone number as you type (AsYouType formatter)
+ * Provides visual formatting while user types
+ * 
+ * Saudi format: XXX XXX XXXX (e.g., 056 403 9942)
+ * International: +966 56 403 9942
+ */
+export function formatPhoneAsYouType(
+  input: string, 
+  countryDialCode: string = "966",
+  includeCountryCode: boolean = false
+): string {
+  // Clean input to digits only
+  let digits = input.replace(/\D/g, "")
+  
+  // Handle empty input
+  if (!digits) return ""
+  
+  // Remove leading zeros
+  if (digits.startsWith("00")) {
+    digits = digits.slice(2)
+  }
+  
+  // Remove country code if present
+  if (digits.startsWith(countryDialCode)) {
+    digits = digits.slice(countryDialCode.length)
+  }
+  
+  // Remove single leading zero (local format)
+  if (digits.startsWith("0")) {
+    digits = digits.slice(1)
+  }
+  
+  // Now format the local number
+  // Saudi mobile numbers are 9 digits: 5X XXX XXXX
+  if (countryDialCode === "966") {
+    // Format: 5X XXX XXXX
+    let formatted = ""
+    
+    if (digits.length <= 2) {
+      formatted = digits
+    } else if (digits.length <= 5) {
+      formatted = `${digits.slice(0, 2)} ${digits.slice(2)}`
+    } else {
+      formatted = `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 9)}`
+    }
+    
+    if (includeCountryCode) {
+      return `+${countryDialCode} ${formatted}`.trim()
+    }
+    return formatted.trim()
+  }
+  
+  // Generic formatting for other countries (groups of 3)
+  const groups = []
+  for (let i = 0; i < digits.length; i += 3) {
+    groups.push(digits.slice(i, i + 3))
+  }
+  
+  const formatted = groups.join(" ")
+  
+  if (includeCountryCode) {
+    return `+${countryDialCode} ${formatted}`.trim()
+  }
+  return formatted.trim()
+}
+
+/**
+ * Parse and extract phone number components from any format
+ * Handles: +966 56 403 9942, 0564039942, 966564039942, 00966564039942, etc.
+ */
+export function parsePhoneNumber(input: string): {
+  digits: string
+  countryCode: string | null
+  localNumber: string
+  formatted: string
+  isValid: boolean
+} {
+  // Clean input
+  let digits = input.replace(/\D/g, "")
+  
+  // Remove leading 00
+  if (digits.startsWith("00")) {
+    digits = digits.slice(2)
+  }
+  
+  // Try to detect country
+  const country = detectCountryFromNumber(digits)
+  
+  let countryCode: string | null = null
+  let localNumber = digits
+  
+  if (country) {
+    countryCode = country.dialCode
+    localNumber = digits.slice(country.dialCode.length)
+  } else if (digits.startsWith("0")) {
+    // Local format starting with 0
+    localNumber = digits.slice(1)
+    countryCode = "966" // Default to Saudi
+  }
+  
+  // Validate length (9-12 digits for local number is reasonable)
+  const isValid = localNumber.length >= 8 && localNumber.length <= 12
+  
+  // Format for display
+  const formatted = formatPhoneAsYouType(localNumber, countryCode || "966", true)
+  
+  return {
+    digits,
+    countryCode,
+    localNumber,
+    formatted,
+    isValid,
+  }
+}
