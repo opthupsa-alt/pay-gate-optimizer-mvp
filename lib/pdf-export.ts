@@ -13,17 +13,41 @@ const SAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 12
  * This ensures PDF content matches the requested locale
  */
 const reasonsCaveatsTranslations: Record<string, { ar: string; en: string }> = {
-  // Reasons
+  // Reasons - Basic
   "يدعم مدى": { ar: "يدعم مدى", en: "Supports Mada" },
   "Supports Mada": { ar: "يدعم مدى", en: "Supports Mada" },
   "يدعم Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
   "Supports Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "يدعم Google Pay": { ar: "يدعم Google Pay", en: "Supports Google Pay" },
+  "Supports Google Pay": { ar: "يدعم Google Pay", en: "Supports Google Pay" },
   "يدعم قطاعك": { ar: "يدعم قطاعك", en: "Supports your sector" },
   "Supports your sector": { ar: "يدعم قطاعك", en: "Supports your sector" },
   "تفعيل سريع": { ar: "تفعيل سريع", en: "Fast activation" },
   "Fast activation": { ar: "تفعيل سريع", en: "Fast activation" },
   "دعم فني ممتاز": { ar: "دعم فني ممتاز", en: "Excellent support" },
   "Excellent support": { ar: "دعم فني ممتاز", en: "Excellent support" },
+  // Reasons - New
+  "يدعم تابي/تمارا": { ar: "يدعم تابي/تمارا", en: "Supports Tabby/Tamara BNPL" },
+  "Supports Tabby/Tamara BNPL": { ar: "يدعم تابي/تمارا", en: "Supports Tabby/Tamara BNPL" },
+  "يدعم العملات المتعددة": { ar: "يدعم العملات المتعددة", en: "Supports multi-currency" },
+  "Supports multi-currency": { ar: "يدعم العملات المتعددة", en: "Supports multi-currency" },
+  "يدعم الدفعات المتكررة": { ar: "يدعم الدفعات المتكررة", en: "Supports recurring payments" },
+  "Supports recurring payments": { ar: "يدعم الدفعات المتكررة", en: "Supports recurring payments" },
+  "تسوية سريعة": { ar: "تسوية سريعة", en: "Fast settlement" },
+  "Fast settlement": { ar: "تسوية سريعة", en: "Fast settlement" },
+  "تكامل مع Shopify": { ar: "تكامل مع Shopify", en: "Shopify integration" },
+  "Shopify integration": { ar: "تكامل مع Shopify", en: "Shopify integration" },
+  "تكامل مع WooCommerce": { ar: "تكامل مع WooCommerce", en: "WooCommerce integration" },
+  "WooCommerce integration": { ar: "تكامل مع WooCommerce", en: "WooCommerce integration" },
+  "تكامل مع سلة": { ar: "تكامل مع سلة", en: "Salla integration" },
+  "Salla integration": { ar: "تكامل مع سلة", en: "Salla integration" },
+  // Caveats - New
+  "تفعيل بطيء": { ar: "تفعيل بطيء", en: "Slow activation time" },
+  "Slow activation time": { ar: "تفعيل بطيء", en: "Slow activation time" },
+  "تسوية بطيئة": { ar: "تسوية بطيئة", en: "Slow settlement time" },
+  "Slow settlement time": { ar: "تسوية بطيئة", en: "Slow settlement time" },
+  "ساعات دعم محدودة": { ar: "ساعات دعم محدودة", en: "Limited support hours" },
+  "Limited support hours": { ar: "ساعات دعم محدودة", en: "Limited support hours" },
 }
 
 /**
@@ -474,6 +498,32 @@ export function generatePDFContent(options: PDFExportOptions): string {
       ? (rec as unknown as { provider_name_ar?: string }).provider_name_ar || rec.provider?.name_ar || `مزود #${index + 1}`
       : (rec as unknown as { provider_name_en?: string }).provider_name_en || rec.provider?.name_en || `Provider #${index + 1}`
     const rank = index + 1
+    
+    // Get new fields from recommendation
+    const recAny = rec as any
+    const prosAr = recAny.pros_ar || []
+    const prosEn = recAny.pros_en || []
+    const consAr = recAny.cons_ar || []
+    const consEn = recAny.cons_en || []
+    const pros = locale === 'ar' ? prosAr : prosEn
+    const cons = locale === 'ar' ? consAr : consEn
+    const activationMin = recAny.activation_time_min
+    const activationMax = recAny.activation_time_max
+    const settlementMin = recAny.settlement_days_min
+    const settlementMax = recAny.settlement_days_max
+    const supportChannels = recAny.support_channels || []
+    const docsUrl = recAny.docs_url
+    
+    // Format activation and settlement text
+    const activationText = activationMin && activationMax
+      ? `${activationMin}-${activationMax} ${t.days}`
+      : activationMin ? `${activationMin}+ ${t.days}` : '-'
+    
+    const settlementText = settlementMin && settlementMax
+      ? `${settlementMin}-${settlementMax} ${t.days}`
+      : settlementMin ? `${settlementMin}+ ${t.days}` : '-'
+    
+    const supportText = supportChannels.length > 0 ? supportChannels.join(', ') : '-'
 
     return `
       <div class="recommendation rank-${rank}">
@@ -515,6 +565,44 @@ export function generatePDFContent(options: PDFExportOptions): string {
             <div class="score-bar"><div class="score-bar-fill" style="width: ${rec.score_risk}%"></div></div>
           </div>
         </div>
+        
+        <!-- Provider Details Section -->
+        <div class="provider-details" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; padding: 16px; background: #f8fafc; border-radius: 8px;">
+          <div>
+            <span style="display: block; font-size: 11px; color: #6b7280;">${t.activationTime}</span>
+            <span style="font-weight: 600;">${activationText}</span>
+          </div>
+          <div>
+            <span style="display: block; font-size: 11px; color: #6b7280;">${t.settlementDays}</span>
+            <span style="font-weight: 600;">${settlementText}</span>
+          </div>
+          <div>
+            <span style="display: block; font-size: 11px; color: #6b7280;">${t.supportChannels}</span>
+            <span style="font-weight: 600;">${supportText}</span>
+          </div>
+        </div>
+        
+        <!-- Pros and Cons -->
+        ${pros.length > 0 || cons.length > 0 ? `
+          <div class="pros-cons" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            ${pros.length > 0 ? `
+              <div style="padding: 12px; background: #ecfdf5; border-radius: 8px; border: 1px solid #6ee7b7;">
+                <h4 style="font-size: 13px; color: #059669; margin-bottom: 8px;">✓ ${t.pros}</h4>
+                <ul style="margin: 0; padding: 0 0 0 16px; font-size: 12px;">
+                  ${pros.map((p: string) => `<li style="margin-bottom: 4px;">${p}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+            ${cons.length > 0 ? `
+              <div style="padding: 12px; background: #fef2f2; border-radius: 8px; border: 1px solid #fca5a5;">
+                <h4 style="font-size: 13px; color: #dc2626; margin-bottom: 8px;">⚠ ${t.cons}</h4>
+                <ul style="margin: 0; padding: 0 0 0 16px; font-size: 12px;">
+                  ${cons.map((c: string) => `<li style="margin-bottom: 4px;">${c}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
         
         <div class="reasons-caveats">
           ${rec.reasons.length > 0 ? `
@@ -582,6 +670,12 @@ export function generatePDFContent(options: PDFExportOptions): string {
         ${rec.data_freshness ? `
           <div class="data-freshness" style="margin-top: 12px; font-size: 11px; color: #9ca3af;">
             ${t.dataFreshness}: ${rec.data_freshness}
+          </div>
+        ` : ''}
+        
+        ${docsUrl ? `
+          <div style="margin-top: 16px;">
+            <a href="${docsUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; background: #059669; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 500;">${t.visitWebsite}</a>
           </div>
         ` : ''}
       </div>
@@ -749,6 +843,15 @@ const translations = {
     avgTicket: "متوسط قيمة العملية",
     poweredBy: "مدعوم بالذكاء الاصطناعي",
     disclaimer: "هذا التقرير استرشادي فقط. الأسعار والشروط النهائية قد تختلف. يرجى التحقق من المزودين مباشرة قبل اتخاذ القرار. البيانات مجمعة من المصادر الرسمية ومراجعات المستخدمين.",
+    // New fields
+    pros: "المميزات",
+    cons: "العيوب",
+    activationTime: "مدة التفعيل",
+    settlementDays: "مدة التسوية",
+    supportChannels: "قنوات الدعم",
+    visitWebsite: "زيارة الموقع",
+    days: "أيام",
+    providerDetails: "تفاصيل المزود",
   },
   en: {
     reportTitle: "Payment Gateway Comparison Report",
@@ -776,6 +879,15 @@ const translations = {
     avgTicket: "Average Ticket",
     poweredBy: "Powered by AI",
     disclaimer: "This report is for guidance only. Final prices and terms may vary. Please verify with providers directly before making a decision. Data is collected from official sources and user reviews.",
+    // New fields
+    pros: "Pros",
+    cons: "Cons",
+    activationTime: "Activation Time",
+    settlementDays: "Settlement Period",
+    supportChannels: "Support Channels",
+    visitWebsite: "Visit Website",
+    days: "days",
+    providerDetails: "Provider Details",
   },
 }
 

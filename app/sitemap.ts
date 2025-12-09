@@ -1,7 +1,35 @@
 import { MetadataRoute } from 'next'
+import { prisma } from '@/lib/db'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://paygate-optimizer.com'
+
+  // Get all active providers
+  let providerPages: MetadataRoute.Sitemap = []
+  try {
+    const providers = await prisma.provider.findMany({
+      where: { isActive: true },
+      select: { 
+        slug: true, 
+        updatedAt: true,
+        isFeatured: true 
+      },
+      orderBy: [
+        { isFeatured: 'desc' },
+        { displayOrder: 'asc' },
+        { nameEn: 'asc' }
+      ]
+    })
+
+    providerPages = providers.map((provider) => ({
+      url: `${baseUrl}/providers/${provider.slug}`,
+      lastModified: provider.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: provider.isFeatured ? 0.85 : 0.8,
+    }))
+  } catch (error) {
+    console.error('Error fetching providers for sitemap:', error)
+  }
 
   return [
     {
@@ -16,6 +44,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/providers`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.85,
+    },
+    ...providerPages,
     {
       url: `${baseUrl}/about`,
       lastModified: new Date(),

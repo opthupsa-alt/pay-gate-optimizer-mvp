@@ -4,6 +4,7 @@ import * as React from "react"
 import { Check, ChevronDown, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { CountryFlag } from "@/components/ui/country-flag"
 import {
   Command,
   CommandEmpty,
@@ -203,7 +204,7 @@ export function PhoneInput({
                 "hover:bg-muted/50 focus:ring-0 focus:ring-offset-0"
               )}
             >
-              <span className="text-lg mr-1">{selectedCountry.flag}</span>
+              <CountryFlag countryCode={selectedCountry.code} size="md" className="mr-1.5" />
               <span className="text-sm font-medium tabular-nums">+{selectedCountry.dialCode}</span>
               <ChevronDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -229,11 +230,11 @@ export function PhoneInput({
                       key={country.code}
                       onClick={() => handleCountrySelect(country)}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-accent",
+                        "flex items-center gap-2.5 px-3 py-2.5 cursor-pointer hover:bg-accent transition-colors",
                         selectedCountry.code === country.code && "bg-accent"
                       )}
                     >
-                      <span className="text-lg">{country.flag}</span>
+                      <CountryFlag countryCode={country.code} size="md" />
                       <span className="flex-1 text-sm">
                         {locale === "ar" ? country.nameAr : country.nameEn}
                       </span>

@@ -103,6 +103,19 @@ export interface Provider {
   cons_ar?: string[]
   cons_en?: string[]
   
+  // SEO & Images
+  logo_url?: string | null
+  cover_image_url?: string | null
+  og_image_url?: string | null
+  keywords_ar?: string[]
+  keywords_en?: string[]
+  meta_title_ar?: string | null
+  meta_title_en?: string | null
+  meta_description_ar?: string | null
+  meta_description_en?: string | null
+  display_order?: number
+  is_featured?: boolean
+  
   // Meta
   notes_ar: string | null
   notes_en: string | null

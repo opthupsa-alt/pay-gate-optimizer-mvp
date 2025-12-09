@@ -70,6 +70,16 @@ interface Recommendation {
   score_risk: number
   reasons: string[]
   caveats: string[]
+  // Enhanced fields
+  activation_time_min?: number
+  activation_time_max?: number
+  settlement_days_min?: number
+  settlement_days_max?: number
+  pros?: string[]
+  cons?: string[]
+  support_channels?: string[]
+  website_url?: string | null
+  docs_url?: string | null
 }
 
 interface ResultData {
@@ -308,6 +318,15 @@ export default function ResultsPage() {
       shareResults: "مشاركة النتائج",
       noData: "لا توجد بيانات",
       noDataDesc: "لم نتمكن من العثور على نتائج المقارنة. يرجى إجراء مقارنة جديدة.",
+      // New fields
+      pros: "المميزات",
+      cons: "العيوب",
+      activationTime: "مدة التفعيل",
+      settlementDays: "مدة التسوية",
+      supportChannels: "قنوات الدعم",
+      visitWebsite: "زيارة الموقع",
+      days: "أيام",
+      providerDetails: "تفاصيل المزود",
     },
     en: {
       title: "Comparison Results",
@@ -336,6 +355,15 @@ export default function ResultsPage() {
       shareResults: "Share Results",
       noData: "No Data",
       noDataDesc: "We couldn't find the comparison results. Please run a new comparison.",
+      // New fields
+      pros: "Pros",
+      cons: "Cons",
+      activationTime: "Activation Time",
+      settlementDays: "Settlement Period",
+      supportChannels: "Support Channels",
+      visitWebsite: "Visit Website",
+      days: "days",
+      providerDetails: "Provider Details",
     },
   }
 
@@ -360,17 +388,41 @@ export default function ResultsPage() {
 
   // Bilingual reasons/caveats mapping for dynamic translation
   const reasonsTranslations: Record<string, { ar: string; en: string }> = {
-    // Reasons
+    // Reasons - Basic
     "يدعم مدى": { ar: "يدعم مدى", en: "Supports Mada" },
     "Supports Mada": { ar: "يدعم مدى", en: "Supports Mada" },
     "يدعم Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
     "Supports Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+    "يدعم Google Pay": { ar: "يدعم Google Pay", en: "Supports Google Pay" },
+    "Supports Google Pay": { ar: "يدعم Google Pay", en: "Supports Google Pay" },
     "يدعم قطاعك": { ar: "يدعم قطاعك", en: "Supports your sector" },
     "Supports your sector": { ar: "يدعم قطاعك", en: "Supports your sector" },
     "تفعيل سريع": { ar: "تفعيل سريع", en: "Fast activation" },
     "Fast activation": { ar: "تفعيل سريع", en: "Fast activation" },
     "دعم فني ممتاز": { ar: "دعم فني ممتاز", en: "Excellent support" },
     "Excellent support": { ar: "دعم فني ممتاز", en: "Excellent support" },
+    // Reasons - New
+    "يدعم تابي/تمارا": { ar: "يدعم تابي/تمارا", en: "Supports Tabby/Tamara BNPL" },
+    "Supports Tabby/Tamara BNPL": { ar: "يدعم تابي/تمارا", en: "Supports Tabby/Tamara BNPL" },
+    "يدعم العملات المتعددة": { ar: "يدعم العملات المتعددة", en: "Supports multi-currency" },
+    "Supports multi-currency": { ar: "يدعم العملات المتعددة", en: "Supports multi-currency" },
+    "يدعم الدفعات المتكررة": { ar: "يدعم الدفعات المتكررة", en: "Supports recurring payments" },
+    "Supports recurring payments": { ar: "يدعم الدفعات المتكررة", en: "Supports recurring payments" },
+    "تسوية سريعة": { ar: "تسوية سريعة", en: "Fast settlement" },
+    "Fast settlement": { ar: "تسوية سريعة", en: "Fast settlement" },
+    "تكامل مع Shopify": { ar: "تكامل مع Shopify", en: "Shopify integration" },
+    "Shopify integration": { ar: "تكامل مع Shopify", en: "Shopify integration" },
+    "تكامل مع WooCommerce": { ar: "تكامل مع WooCommerce", en: "WooCommerce integration" },
+    "WooCommerce integration": { ar: "تكامل مع WooCommerce", en: "WooCommerce integration" },
+    "تكامل مع سلة": { ar: "تكامل مع سلة", en: "Salla integration" },
+    "Salla integration": { ar: "تكامل مع سلة", en: "Salla integration" },
+    // Caveats - New
+    "تفعيل بطيء": { ar: "تفعيل بطيء", en: "Slow activation time" },
+    "Slow activation time": { ar: "تفعيل بطيء", en: "Slow activation time" },
+    "تسوية بطيئة": { ar: "تسوية بطيئة", en: "Slow settlement time" },
+    "Slow settlement time": { ar: "تسوية بطيئة", en: "Slow settlement time" },
+    "ساعات دعم محدودة": { ar: "ساعات دعم محدودة", en: "Limited support hours" },
+    "Limited support hours": { ar: "ساعات دعم محدودة", en: "Limited support hours" },
   }
 
   // Translate a reason/caveat to current locale
@@ -690,6 +742,95 @@ export default function ResultsPage() {
                   </div>
                 )}
               </div>
+
+              {/* Enhanced Info: Pros, Cons, Activation, Settlement */}
+              {(rec.pros?.length || rec.cons?.length || rec.activation_time_min || rec.settlement_days_min) && (
+                <>
+                  <Separator />
+                  <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+                    {/* Pros */}
+                    {rec.pros && rec.pros.length > 0 && (
+                      <div>
+                        <h4 className="mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base font-semibold text-emerald-600">
+                          <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                          {locale === "ar" ? "المميزات" : "Advantages"}
+                        </h4>
+                        <ul className="space-y-1.5 sm:space-y-2">
+                          {rec.pros.map((pro, i) => (
+                            <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
+                              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 text-emerald-500 shrink-0" />
+                              <span>{pro}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Cons */}
+                    {rec.cons && rec.cons.length > 0 && (
+                      <div>
+                        <h4 className="mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base font-semibold text-red-600">
+                          <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
+                          {locale === "ar" ? "العيوب" : "Disadvantages"}
+                        </h4>
+                        <ul className="space-y-1.5 sm:space-y-2">
+                          {rec.cons.map((con, i) => (
+                            <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
+                              <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 text-red-500 shrink-0" />
+                              <span>{con}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick Stats: Activation & Settlement */}
+                  {(rec.activation_time_min || rec.settlement_days_min) && (
+                    <div className="flex flex-wrap gap-4 mt-4">
+                      {rec.activation_time_min && (
+                        <div className="flex items-center gap-2 text-xs sm:text-sm bg-blue-50 dark:bg-blue-950/30 px-3 py-2 rounded-lg">
+                          <Zap className="h-4 w-4 text-blue-500" />
+                          <span className="font-medium">
+                            {locale === "ar" ? "التفعيل:" : "Activation:"} 
+                          </span>
+                          <span>
+                            {rec.activation_time_min === rec.activation_time_max 
+                              ? `${rec.activation_time_min} ${locale === "ar" ? "يوم" : "days"}`
+                              : `${rec.activation_time_min}-${rec.activation_time_max} ${locale === "ar" ? "يوم" : "days"}`
+                            }
+                          </span>
+                        </div>
+                      )}
+                      {rec.settlement_days_min && (
+                        <div className="flex items-center gap-2 text-xs sm:text-sm bg-green-50 dark:bg-green-950/30 px-3 py-2 rounded-lg">
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                          <span className="font-medium">
+                            {locale === "ar" ? "التسوية:" : "Settlement:"} 
+                          </span>
+                          <span>
+                            {rec.settlement_days_min === rec.settlement_days_max 
+                              ? `${rec.settlement_days_min} ${locale === "ar" ? "يوم" : "days"}`
+                              : `${rec.settlement_days_min}-${rec.settlement_days_max} ${locale === "ar" ? "يوم" : "days"}`
+                            }
+                          </span>
+                        </div>
+                      )}
+                      {rec.website_url && (
+                        <a 
+                          href={rec.website_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-xs sm:text-sm bg-gray-50 dark:bg-gray-900/30 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors"
+                        >
+                          <Building2 className="h-4 w-4 text-gray-500" />
+                          <span>{locale === "ar" ? "زيارة الموقع" : "Visit Website"}</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
 
               <Separator />
 

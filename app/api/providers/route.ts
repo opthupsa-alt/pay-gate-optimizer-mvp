@@ -69,13 +69,65 @@ export async function GET(request: NextRequest) {
         },
         opsMetrics: true,
       },
-      orderBy: { nameAr: "asc" },
+      orderBy: [
+        { isFeatured: "desc" },
+        { displayOrder: "asc" },
+        { nameAr: "asc" },
+      ],
       skip: (filters.page! - 1) * filters.limit!,
       take: filters.limit!,
     })
 
+    // Transform providers to match expected format
+    const transformedProviders = providers.map(p => ({
+      id: p.id,
+      slug: p.slug,
+      name_ar: p.nameAr,
+      name_en: p.nameEn,
+      description_ar: p.descriptionAr,
+      description_en: p.descriptionEn,
+      notes_ar: p.notesAr,
+      notes_en: p.notesEn,
+      website_url: p.websiteUrl,
+      logo_path: p.logoPath,
+      logo_url: p.logoUrl,
+      cover_image_url: p.coverImageUrl,
+      is_featured: p.isFeatured,
+      display_order: p.displayOrder,
+      category: p.category,
+      activation_time_days_min: p.activationTimeDaysMin,
+      activation_time_days_max: p.activationTimeDaysMax,
+      settlement_days_min: p.settlementDaysMin,
+      settlement_days_max: p.settlementDaysMax,
+      multi_currency_supported: p.multiCurrencySupported,
+      status: p.status,
+      provider_fees: p.providerFees?.map(f => ({
+        id: f.id,
+        fee_percent: f.feePercent,
+        fee_fixed: f.feeFixed,
+        payment_method: f.paymentMethod ? {
+          id: f.paymentMethod.id,
+          name_ar: f.paymentMethod.nameAr,
+          name_en: f.paymentMethod.nameEn,
+        } : null,
+      })) || [],
+      provider_integrations: p.providerIntegrations?.map(i => ({
+        id: i.id,
+        platform: i.platform,
+        integration_type: i.integrationType,
+        is_official: i.isOfficial,
+      })) || [],
+      provider_reviews: p.providerReviews?.map(r => ({
+        id: r.id,
+        platform: r.platform,
+        rating_avg: r.ratingAvg,
+        rating_max: r.ratingMax,
+        rating_count: r.ratingCount,
+      })) || [],
+    }))
+
     return NextResponse.json({
-      providers,
+      providers: transformedProviders,
       total,
       page: filters.page,
       limit: filters.limit,

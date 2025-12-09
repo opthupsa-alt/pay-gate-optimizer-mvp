@@ -115,16 +115,41 @@ function reverseArabicText(text: string): string {
  * Bilingual translations for reasons and caveats
  */
 const reasonsCaveatsTranslations: Record<string, { ar: string; en: string }> = {
+  // Reasons - Basic
   "يدعم مدى": { ar: "يدعم مدى", en: "Supports Mada" },
   "Supports Mada": { ar: "يدعم مدى", en: "Supports Mada" },
   "يدعم Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
   "Supports Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "يدعم Google Pay": { ar: "يدعم Google Pay", en: "Supports Google Pay" },
+  "Supports Google Pay": { ar: "يدعم Google Pay", en: "Supports Google Pay" },
   "يدعم قطاعك": { ar: "يدعم قطاعك", en: "Supports your sector" },
   "Supports your sector": { ar: "يدعم قطاعك", en: "Supports your sector" },
   "تفعيل سريع": { ar: "تفعيل سريع", en: "Fast activation" },
   "Fast activation": { ar: "تفعيل سريع", en: "Fast activation" },
   "دعم فني ممتاز": { ar: "دعم فني ممتاز", en: "Excellent support" },
   "Excellent support": { ar: "دعم فني ممتاز", en: "Excellent support" },
+  // Reasons - New
+  "يدعم تابي/تمارا": { ar: "يدعم تابي/تمارا", en: "Supports Tabby/Tamara BNPL" },
+  "Supports Tabby/Tamara BNPL": { ar: "يدعم تابي/تمارا", en: "Supports Tabby/Tamara BNPL" },
+  "يدعم العملات المتعددة": { ar: "يدعم العملات المتعددة", en: "Supports multi-currency" },
+  "Supports multi-currency": { ar: "يدعم العملات المتعددة", en: "Supports multi-currency" },
+  "يدعم الدفعات المتكررة": { ar: "يدعم الدفعات المتكررة", en: "Supports recurring payments" },
+  "Supports recurring payments": { ar: "يدعم الدفعات المتكررة", en: "Supports recurring payments" },
+  "تسوية سريعة": { ar: "تسوية سريعة", en: "Fast settlement" },
+  "Fast settlement": { ar: "تسوية سريعة", en: "Fast settlement" },
+  "تكامل مع Shopify": { ar: "تكامل مع Shopify", en: "Shopify integration" },
+  "Shopify integration": { ar: "تكامل مع Shopify", en: "Shopify integration" },
+  "تكامل مع WooCommerce": { ar: "تكامل مع WooCommerce", en: "WooCommerce integration" },
+  "WooCommerce integration": { ar: "تكامل مع WooCommerce", en: "WooCommerce integration" },
+  "تكامل مع سلة": { ar: "تكامل مع سلة", en: "Salla integration" },
+  "Salla integration": { ar: "تكامل مع سلة", en: "Salla integration" },
+  // Caveats - New
+  "تفعيل بطيء": { ar: "تفعيل بطيء", en: "Slow activation time" },
+  "Slow activation time": { ar: "تفعيل بطيء", en: "Slow activation time" },
+  "تسوية بطيئة": { ar: "تسوية بطيئة", en: "Slow settlement time" },
+  "Slow settlement time": { ar: "تسوية بطيئة", en: "Slow settlement time" },
+  "ساعات دعم محدودة": { ar: "ساعات دعم محدودة", en: "Limited support hours" },
+  "Limited support hours": { ar: "ساعات دعم محدودة", en: "Limited support hours" },
 }
 
 /**
@@ -459,6 +484,116 @@ export async function generateLocalPDF(options: LocalPDFOptions): Promise<LocalP
           }
           yPos += 16
         }
+      }
+      
+      // Display new fields: activation time, settlement, support
+      const recAny = rec as any
+      const activationMin = recAny.activation_time_min
+      const activationMax = recAny.activation_time_max
+      const settlementMin = recAny.settlement_days_min
+      const settlementMax = recAny.settlement_days_max
+      const supportChannels = recAny.support_channels || []
+      const docsUrl = recAny.docs_url
+      
+      // Provider details row
+      if (activationMin || settlementMin || supportChannels.length > 0) {
+        yPos += 10
+        doc.font('Arabic').fontSize(10).fillColor(COLORS.gray)
+        
+        const detailParts: string[] = []
+        
+        if (activationMin && activationMax) {
+          const activationLabel = isArabic ? 'التفعيل' : 'Activation'
+          const daysLabel = isArabic ? 'أيام' : 'days'
+          detailParts.push(`${activationLabel}: ${activationMin}-${activationMax} ${daysLabel}`)
+        }
+        
+        if (settlementMin && settlementMax) {
+          const settlementLabel = isArabic ? 'التسوية' : 'Settlement'
+          const daysLabel = isArabic ? 'أيام' : 'days'
+          detailParts.push(`${settlementLabel}: ${settlementMin}-${settlementMax} ${daysLabel}`)
+        }
+        
+        if (supportChannels.length > 0) {
+          const supportLabel = isArabic ? 'الدعم' : 'Support'
+          detailParts.push(`${supportLabel}: ${supportChannels.slice(0, 3).join(', ')}`)
+        }
+        
+        if (detailParts.length > 0) {
+          const detailsText = detailParts.join(' | ')
+          if (isArabic) {
+            doc.text(reverseArabicText(detailsText), 50, yPos, { align: 'right', width: 495 })
+          } else {
+            doc.text(detailsText, 95, yPos, { width: 400 })
+          }
+          yPos += 18
+        }
+      }
+      
+      // Display pros/cons if available
+      const prosAr = recAny.pros_ar || []
+      const prosEn = recAny.pros_en || []
+      const consAr = recAny.cons_ar || []
+      const consEn = recAny.cons_en || []
+      const pros = isArabic ? prosAr : prosEn
+      const cons = isArabic ? consAr : consEn
+      
+      if (pros.length > 0) {
+        yPos += 5
+        const prosLabel = isArabic ? 'النقاط الإيجابية' : 'Pros'
+        doc.fillColor(COLORS.success)
+        if (isArabic) {
+          doc.text(`:${reverseArabicText(prosLabel)}`, 50, yPos, { align: 'right', width: 495 })
+        } else {
+          doc.text(`${prosLabel}:`, 95, yPos, { width: 400 })
+        }
+        yPos += 16
+        
+        for (const pro of pros.slice(0, 2)) {
+          doc.fillColor(COLORS.dark)
+          if (isArabic) {
+            doc.text(`${reverseArabicText(pro)} ●`, 50, yPos, { align: 'right', width: 495 })
+          } else {
+            doc.text(`● ${pro}`, 110, yPos, { width: 385 })
+          }
+          yPos += 14
+        }
+      }
+      
+      if (cons.length > 0) {
+        yPos += 5
+        const consLabel = isArabic ? 'النقاط السلبية' : 'Cons'
+        doc.fillColor(COLORS.warning)
+        if (isArabic) {
+          doc.text(`:${reverseArabicText(consLabel)}`, 50, yPos, { align: 'right', width: 495 })
+        } else {
+          doc.text(`${consLabel}:`, 95, yPos, { width: 400 })
+        }
+        yPos += 16
+        
+        for (const con of cons.slice(0, 2)) {
+          doc.fillColor(COLORS.dark)
+          if (isArabic) {
+            doc.text(`${reverseArabicText(con)} ●`, 50, yPos, { align: 'right', width: 495 })
+          } else {
+            doc.text(`● ${con}`, 110, yPos, { width: 385 })
+          }
+          yPos += 14
+        }
+      }
+      
+      // Website link
+      if (docsUrl) {
+        yPos += 8
+        const visitLabel = isArabic ? 'زيارة الموقع' : 'Visit Website'
+        doc.fillColor(COLORS.primary)
+           .fontSize(10)
+        if (isArabic) {
+          doc.text(reverseArabicText(visitLabel), 50, yPos, { align: 'right', width: 495, link: docsUrl, underline: true })
+        } else {
+          doc.text(visitLabel, 95, yPos, { width: 400, link: docsUrl, underline: true })
+        }
+        yPos += 18
       }
       
       yPos += 25

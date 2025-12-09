@@ -247,6 +247,19 @@ model Provider {
   consAr Json @default("[]") @map("cons_ar")
   consEn Json @default("[]") @map("cons_en")
 
+  // ===== SEO & Images (الصور والـ SEO) =====
+  logoUrl           String? @map("logo_url") /// رابط الشعار
+  coverImageUrl     String? @map("cover_image_url") /// صورة الغلاف
+  ogImageUrl        String? @map("og_image_url") /// صورة المشاركة (OG)
+  keywordsAr        Json    @default("[]") @map("keywords_ar") /// الكلمات المفتاحية بالعربية
+  keywordsEn        Json    @default("[]") @map("keywords_en") /// الكلمات المفتاحية بالإنجليزية
+  metaTitleAr       String? @map("meta_title_ar") /// عنوان الميتا بالعربية
+  metaTitleEn       String? @map("meta_title_en") /// عنوان الميتا بالإنجليزية
+  metaDescriptionAr String? @map("meta_description_ar") @db.Text /// وصف الميتا بالعربية
+  metaDescriptionEn String? @map("meta_description_en") @db.Text /// وصف الميتا بالإنجليزية
+  displayOrder      Int     @default(0) @map("display_order") /// ترتيب العرض
+  isFeatured        Boolean @default(false) @map("is_featured") /// مميز
+
   // Status
   status         ProviderStatus @default(active)
   notesAr        String?        @map("notes_ar") @db.Text

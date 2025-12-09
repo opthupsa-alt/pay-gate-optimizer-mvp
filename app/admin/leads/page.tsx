@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
 import { 
   Search, 
   MoreHorizontal,
@@ -64,95 +65,56 @@ interface Lead {
   createdAt: string
 }
 
-const mockLeads: Lead[] = [
-  {
-    id: "1",
-    name: "أحمد محمد الشمري",
-    email: "ahmed@example.com",
-    phone: "0501234567",
-    phoneNormalized: "966501234567",
-    company: "شركة التقنية المتقدمة",
-    sector: "التجارة الإلكترونية",
-    status: "new",
-    whatsappStatus: "sent",
-    whatsappSentAt: "2024-01-15T11:00:00Z",
-    lastError: null,
-    wizardRunId: "wr_1",
-    monthlyGmv: 150000,
-    createdAt: "2024-01-15T10:30:00Z"
-  },
-  {
-    id: "2",
-    name: "سارة العلي",
-    email: "sara@example.com",
-    phone: "0559876543",
-    phoneNormalized: "966559876543",
-    company: "مطعم الذواقة",
-    sector: "المطاعم",
-    status: "contacted",
-    whatsappStatus: "failed",
-    whatsappSentAt: null,
-    lastError: "Connection timeout",
-    wizardRunId: "wr_2",
-    monthlyGmv: 75000,
-    createdAt: "2024-01-14T14:20:00Z"
-  },
-  {
-    id: "3",
-    name: "خالد السعيد",
-    email: "khaled@example.com",
-    phone: "0541112222",
-    phoneNormalized: "966541112222",
-    company: "عيادات الصحة",
-    sector: "الخدمات الطبية",
-    status: "qualified",
-    whatsappStatus: "pending",
-    whatsappSentAt: null,
-    lastError: null,
-    wizardRunId: "wr_3",
-    monthlyGmv: 200000,
-    createdAt: "2024-01-13T09:15:00Z"
-  },
-  {
-    id: "4",
-    name: "نورة القحطاني",
-    email: "noura@example.com",
-    phone: "0533334444",
-    phoneNormalized: "966533334444",
-    company: "متجر الأناقة",
-    sector: "تجارة التجزئة",
-    status: "won",
-    whatsappStatus: "sent",
-    whatsappSentAt: "2024-01-12T17:00:00Z",
-    lastError: null,
-    wizardRunId: "wr_4",
-    monthlyGmv: 50000,
-    createdAt: "2024-01-12T16:45:00Z"
-  },
-  {
-    id: "5",
-    name: "فهد العتيبي",
-    email: "fahad@example.com",
-    phone: "0525556666",
-    phoneNormalized: "966525556666",
-    company: "شركة البرمجيات",
-    sector: "البرمجيات",
-    status: "lost",
-    whatsappStatus: null,
-    whatsappSentAt: null,
-    lastError: null,
-    wizardRunId: null,
-    monthlyGmv: 300000,
-    createdAt: "2024-01-10T11:00:00Z"
-  },
-]
-
 export default function LeadsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [whatsappFilter, setWhatsappFilter] = useState<string>("all")
-  const [leads, setLeads] = useState(mockLeads)
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [loading, setLoading] = useState(true)
   const [sendingWhatsapp, setSendingWhatsapp] = useState<string | null>(null)
+
+  // Fetch leads from API
+  const fetchLeads = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("/api/admin/leads")
+      if (response.ok) {
+        const data = await response.json()
+        // Transform API response to match Lead interface
+        const transformedLeads: Lead[] = (data.leads || []).map((lead: Record<string, unknown>) => ({
+          id: lead.id as string,
+          name: lead.name as string,
+          email: lead.email as string | null,
+          phone: lead.phone as string | null,
+          phoneNormalized: (lead.phone as string)?.replace(/\D/g, "") || null,
+          company: lead.companyName as string | null,
+          sector: (lead.wizardRun as Record<string, unknown>)?.sector ? 
+            ((lead.wizardRun as Record<string, unknown>).sector as Record<string, string>)?.nameAr : null,
+          status: lead.status as Lead["status"],
+          whatsappStatus: (lead.whatsappStatus as WhatsappStatus) || null,
+          whatsappSentAt: lead.whatsappSentAt as string | null,
+          lastError: lead.lastError as string | null,
+          wizardRunId: lead.wizardRunId as string | null,
+          monthlyGmv: (lead.wizardRun as Record<string, unknown>)?.monthlyGmv 
+            ? Number((lead.wizardRun as Record<string, unknown>).monthlyGmv) 
+            : 0,
+          createdAt: lead.createdAt as string,
+        }))
+        setLeads(transformedLeads)
+      } else {
+        toast.error("فشل في جلب البيانات")
+      }
+    } catch (error) {
+      console.error("Error fetching leads:", error)
+      toast.error("حدث خطأ أثناء جلب البيانات")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchLeads()
+  }, [fetchLeads])
 
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch = 
@@ -166,10 +128,53 @@ export default function LeadsPage() {
     return matchesSearch && matchesStatus && matchesWhatsapp
   })
 
-  const updateLeadStatus = (id: string, status: Lead["status"]) => {
-    setLeads(leads.map(lead => 
-      lead.id === id ? { ...lead, status } : lead
-    ))
+  const updateLeadStatus = async (id: string, status: Lead["status"]) => {
+    try {
+      const response = await fetch("/api/admin/leads", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status })
+      })
+      
+      if (response.ok) {
+        setLeads(leads.map(lead => 
+          lead.id === id ? { ...lead, status } : lead
+        ))
+        toast.success("تم تحديث الحالة بنجاح")
+      } else {
+        toast.error("فشل تحديث الحالة")
+      }
+    } catch (error) {
+      toast.error("حدث خطأ")
+    }
+  }
+
+  // Export leads to CSV
+  const exportToCSV = () => {
+    const headers = ["الاسم", "البريد", "الهاتف", "الشركة", "القطاع", "حجم المبيعات", "الحالة", "التاريخ"]
+    const csvRows = [headers.join(",")]
+    
+    filteredLeads.forEach(lead => {
+      const row = [
+        lead.name,
+        lead.email || "",
+        lead.phone || "",
+        lead.company || "",
+        lead.sector || "",
+        lead.monthlyGmv,
+        lead.status,
+        new Date(lead.createdAt).toLocaleDateString("ar-SA")
+      ]
+      csvRows.push(row.map(cell => `"${cell}"`).join(","))
+    })
+    
+    const csvContent = "\uFEFF" + csvRows.join("\n") // BOM for Arabic
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.download = `leads_${new Date().toISOString().split("T")[0]}.csv`
+    link.click()
+    toast.success("تم تصدير الملف بنجاح")
   }
 
   const statusConfig: Record<Lead["status"], { label: string; color: string; icon: typeof CheckCircle }> = {
@@ -252,10 +257,16 @@ export default function LeadsPage() {
           <h1 className="text-2xl font-bold">العملاء المحتملين</h1>
           <p className="text-muted-foreground">إدارة ومتابعة العملاء المحتملين</p>
         </div>
-        <Button variant="outline">
-          <Download className="h-4 w-4 me-2" />
-          تصدير CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchLeads} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 me-2 ${loading ? "animate-spin" : ""}`} />
+            تحديث
+          </Button>
+          <Button variant="outline" onClick={exportToCSV}>
+            <Download className="h-4 w-4 me-2" />
+            تصدير CSV
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -353,7 +364,28 @@ export default function LeadsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredLeads.map((lead) => (
+              {loading ? (
+                // Loading skeleton
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-10 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                  </TableRow>
+                ))
+              ) : filteredLeads.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    لا يوجد عملاء محتملين
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredLeads.map((lead) => (
                 <TableRow key={lead.id}>
                   <TableCell>
                     <div>
@@ -471,7 +503,8 @@ export default function LeadsPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

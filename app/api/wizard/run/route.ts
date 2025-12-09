@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/db"
 import type { WizardFormData } from "@/lib/types"
+import { checkRateLimit, getClientIP, RateLimitPresets, createRateLimitHeaders } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting - 20 requests per minute per IP
+    const clientIP = getClientIP(request)
+    const rateLimit = checkRateLimit(clientIP, RateLimitPresets.wizard)
+    
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: "تم تجاوز الحد المسموح من الطلبات، يرجى المحاولة لاحقاً" },
+        { 
+          status: 429,
+          headers: createRateLimitHeaders(rateLimit)
+        }
+      )
+    }
+
     const data: WizardFormData = await request.json()
 
     // Validate required fields
@@ -234,6 +249,16 @@ interface RecommendationResult {
   score_risk: number
   reasons: string[]
   caveats: string[]
+  // New fields for enhanced display
+  activation_time_min: number
+  activation_time_max: number
+  settlement_days_min: number
+  settlement_days_max: number
+  pros: string[]
+  cons: string[]
+  support_channels: string[]
+  website_url: string | null
+  docs_url: string | null
 }
 
 function calculateProviderRecommendations(
@@ -286,6 +311,15 @@ function calculateProviderRecommendations(
     const reasons = generateReasons(provider, formData, formData.locale || "ar")
     const caveats = generateCaveats(provider, formData, formData.locale || "ar")
 
+    // Get pros/cons based on locale
+    const locale = formData.locale || "ar"
+    const pros = locale === "ar" 
+      ? (provider.prosAr as string[] || [])
+      : (provider.prosEn as string[] || [])
+    const cons = locale === "ar"
+      ? (provider.consAr as string[] || [])
+      : (provider.consEn as string[] || [])
+
     results.push({
       provider_id: provider.id,
       provider_name_ar: provider.nameAr,
@@ -302,6 +336,16 @@ function calculateProviderRecommendations(
       score_risk: Math.round(riskScore * 100) / 100,
       reasons,
       caveats,
+      // Enhanced fields
+      activation_time_min: provider.activationTimeDaysMin || 1,
+      activation_time_max: provider.activationTimeDaysMax || 14,
+      settlement_days_min: provider.settlementDaysMin || 1,
+      settlement_days_max: provider.settlementDaysMax || 3,
+      pros: pros.slice(0, 4),
+      cons: cons.slice(0, 3),
+      support_channels: provider.supportChannels as string[] || [],
+      website_url: provider.websiteUrl,
+      docs_url: provider.docsUrl,
     })
   }
 
@@ -482,6 +526,7 @@ function generateReasons(
     (pm: any) => pm.paymentMethod?.code
   ) || []
 
+  // Payment method support
   if (supportedMethods.includes("mada")) {
     reasons.push(isAr ? "يدعم مدى" : "Supports Mada")
   }
@@ -490,6 +535,15 @@ function generateReasons(
     reasons.push(isAr ? "يدعم Apple Pay" : "Supports Apple Pay")
   }
 
+  if (supportedMethods.includes("google_pay")) {
+    reasons.push(isAr ? "يدعم Google Pay" : "Supports Google Pay")
+  }
+
+  if (supportedMethods.includes("stc_pay")) {
+    reasons.push(isAr ? "يدعم STC Pay" : "Supports STC Pay")
+  }
+
+  // Sector support
   const sectorRule = provider.providerSectorRules?.find(
     (r: any) => r.sector?.code === formData.sector_id
   )
@@ -497,6 +551,7 @@ function generateReasons(
     reasons.push(isAr ? "يدعم قطاعك" : "Supports your sector")
   }
 
+  // Ops metrics
   const metrics = provider.opsMetrics
   if (metrics?.onboardingScore && metrics.onboardingScore >= 80) {
     reasons.push(isAr ? "تفعيل سريع" : "Fast activation")
@@ -506,7 +561,67 @@ function generateReasons(
     reasons.push(isAr ? "دعم فني ممتاز" : "Excellent support")
   }
 
-  return reasons.slice(0, 4)
+  if (metrics?.docsScore && metrics.docsScore >= 80) {
+    reasons.push(isAr ? "توثيق ممتاز" : "Excellent documentation")
+  }
+
+  // Activation time
+  if (provider.activationTimeDaysMin && provider.activationTimeDaysMin <= 2) {
+    reasons.push(isAr ? "تفعيل خلال يومين" : "Activation within 2 days")
+  }
+
+  // Settlement time
+  if (provider.settlementDaysMin && provider.settlementDaysMin <= 1) {
+    reasons.push(isAr ? "تسوية يومية" : "Daily settlement")
+  }
+
+  // Capabilities
+  const capabilities = provider.providerCapabilities?.map(
+    (c: any) => c.capability?.code
+  ) || []
+
+  if (capabilities.includes("recurring") && formData.needs?.recurring) {
+    reasons.push(isAr ? "يدعم الاشتراكات المتكررة" : "Supports recurring payments")
+  }
+
+  if (capabilities.includes("multi_currency") && formData.needs?.multi_currency) {
+    reasons.push(isAr ? "يدعم تعدد العملات" : "Supports multi-currency")
+  }
+
+  if (capabilities.includes("tokenization")) {
+    reasons.push(isAr ? "يدعم حفظ البطاقات" : "Supports tokenization")
+  }
+
+  // Integrations (check for matching platform needs)
+  const integrations = provider.providerIntegrations?.map(
+    (i: any) => i.platform
+  ) || []
+
+  if (integrations.includes("salla") && formData.needs?.plugins_salla) {
+    reasons.push(isAr ? "تكامل مع سلة" : "Salla integration")
+  }
+
+  if (integrations.includes("zid") && formData.needs?.plugins_zid) {
+    reasons.push(isAr ? "تكامل مع زد" : "Zid integration")
+  }
+
+  if (integrations.includes("shopify") && formData.needs?.plugins_shopify) {
+    reasons.push(isAr ? "تكامل مع Shopify" : "Shopify integration")
+  }
+
+  if (integrations.includes("woocommerce") && formData.needs?.plugins_woocommerce) {
+    reasons.push(isAr ? "تكامل مع WooCommerce" : "WooCommerce integration")
+  }
+
+  // No fees bonuses
+  const setupFee = Number(provider.setupFee) || 0
+  const monthlyFee = Number(provider.monthlyFee) || 0
+  
+  if (setupFee === 0 && monthlyFee === 0) {
+    reasons.push(isAr ? "بدون رسوم شهرية أو تسجيل" : "No setup or monthly fees")
+  }
+
+  return reasons.slice(0, 5)
 }
 
 function generateCaveats(
@@ -520,17 +635,88 @@ function generateCaveats(
   const setupFee = Number(provider.setupFee) || 0
   const monthlyFee = Number(provider.monthlyFee) || 0
 
+  // Fees caveats
   if (setupFee > 0) {
     caveats.push(
-      isAr ? `رسوم تسجيل: ${setupFee} ﷼` : `Setup fee: ${setupFee} ﷼`
+      isAr ? `رسوم تسجيل: ${setupFee} ﷼` : `Setup fee: ${setupFee} SAR`
     )
   }
 
   if (monthlyFee > 0) {
     caveats.push(
-      isAr ? `رسوم شهرية: ${monthlyFee} ﷼` : `Monthly fee: ${monthlyFee} ﷼`
+      isAr ? `رسوم شهرية: ${monthlyFee} ﷼` : `Monthly fee: ${monthlyFee} SAR`
     )
   }
 
-  return caveats.slice(0, 3)
+  // Activation time caveat
+  if (provider.activationTimeDaysMax && provider.activationTimeDaysMax > 7) {
+    caveats.push(
+      isAr 
+        ? `قد يستغرق التفعيل حتى ${provider.activationTimeDaysMax} يوم` 
+        : `Activation may take up to ${provider.activationTimeDaysMax} days`
+    )
+  }
+
+  // Settlement time caveat
+  if (provider.settlementDaysMax && provider.settlementDaysMax > 3) {
+    caveats.push(
+      isAr 
+        ? `التسوية قد تصل إلى ${provider.settlementDaysMax} أيام` 
+        : `Settlement may take up to ${provider.settlementDaysMax} days`
+    )
+  }
+
+  // Risk notes
+  if (provider.riskNotes) {
+    const note = provider.riskNotes.substring(0, 50)
+    caveats.push(note)
+  }
+
+  // Rolling reserve
+  const rollingReserve = Number(provider.rollingReservePercent) || 0
+  if (rollingReserve > 0) {
+    caveats.push(
+      isAr 
+        ? `احتياطي متجدد ${rollingReserve}%` 
+        : `${rollingReserve}% rolling reserve`
+    )
+  }
+
+  // Check for missing payment methods
+  const supportedMethods = provider.providerPaymentMethods?.map(
+    (pm: any) => pm.paymentMethod?.code
+  ) || []
+
+  for (const [method, percentage] of Object.entries(formData.payment_mix)) {
+    if (percentage > 0 && !supportedMethods.includes(method)) {
+      const methodName = method === "mada" ? "مدى" : 
+                         method === "apple_pay" ? "Apple Pay" :
+                         method === "google_pay" ? "Google Pay" :
+                         method === "stc_pay" ? "STC Pay" : method
+      caveats.push(
+        isAr 
+          ? `لا يدعم ${methodName}` 
+          : `Does not support ${methodName}`
+      )
+    }
+  }
+
+  // Check for missing capabilities
+  const capabilities = provider.providerCapabilities?.map(
+    (c: any) => c.capability?.code
+  ) || []
+
+  if (formData.needs?.recurring && !capabilities.includes("recurring")) {
+    caveats.push(
+      isAr ? "لا يدعم الاشتراكات المتكررة" : "Does not support recurring"
+    )
+  }
+
+  if (formData.needs?.multi_currency && !capabilities.includes("multi_currency")) {
+    caveats.push(
+      isAr ? "لا يدعم تعدد العملات" : "Does not support multi-currency"
+    )
+  }
+
+  return caveats.slice(0, 4)
 }

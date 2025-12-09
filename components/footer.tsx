@@ -13,17 +13,17 @@ const fallbackMenus = {
     {
       title: "روابط سريعة",
       links: [
-        { label: "الرئيسية", href: "/" },
-        { label: "مقارنة البوابات", href: "/wizard" },
-        { label: "عن المنصة", href: "/about" },
-        { label: "تواصل معنا", href: "/contact" },
+        { label: "الرئيسية", href: "/", isExternal: false, openInNewTab: false },
+        { label: "مقارنة البوابات", href: "/wizard", isExternal: false, openInNewTab: false },
+        { label: "عن المنصة", href: "/about", isExternal: false, openInNewTab: false },
+        { label: "تواصل معنا", href: "/contact", isExternal: false, openInNewTab: false },
       ]
     },
     {
       title: "قانونية",
       links: [
-        { label: "سياسة الخصوصية", href: "/privacy" },
-        { label: "شروط الاستخدام", href: "/terms" },
+        { label: "سياسة الخصوصية", href: "/privacy", isExternal: false, openInNewTab: false },
+        { label: "شروط الاستخدام", href: "/terms", isExternal: false, openInNewTab: false },
       ]
     }
   ],
@@ -31,17 +31,17 @@ const fallbackMenus = {
     {
       title: "Quick Links",
       links: [
-        { label: "Home", href: "/" },
-        { label: "Compare Gateways", href: "/wizard" },
-        { label: "About", href: "/about" },
-        { label: "Contact Us", href: "/contact" },
+        { label: "Home", href: "/", isExternal: false, openInNewTab: false },
+        { label: "Compare Gateways", href: "/wizard", isExternal: false, openInNewTab: false },
+        { label: "About", href: "/about", isExternal: false, openInNewTab: false },
+        { label: "Contact Us", href: "/contact", isExternal: false, openInNewTab: false },
       ]
     },
     {
       title: "Legal",
       links: [
-        { label: "Privacy Policy", href: "/privacy" },
-        { label: "Terms of Use", href: "/terms" },
+        { label: "Privacy Policy", href: "/privacy", isExternal: false, openInNewTab: false },
+        { label: "Terms of Use", href: "/terms", isExternal: false, openInNewTab: false },
       ]
     }
   ]

@@ -6,17 +6,30 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useLocale } from "@/hooks/use-locale"
 
+const errorMessages = {
+  ar: {
+    InvalidCredentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    CredentialsSignin: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    Default: "حدث خطأ غير متوقع",
+    AccessDenied: "ليس لديك صلاحية الوصول",
+    Configuration: "خطأ في إعدادات المصادقة",
+  },
+  en: {
+    InvalidCredentials: "Invalid email or password",
+    CredentialsSignin: "Invalid email or password",
+    Default: "An unexpected error occurred",
+    AccessDenied: "You do not have access",
+    Configuration: "Authentication configuration error",
+  },
+}
+
 const translations = {
   ar: {
     title: "حدث خطأ",
-    errorCode: "رمز الخطأ:",
-    unknownError: "حدث خطأ غير محدد. يرجى المحاولة مرة أخرى.",
     backToLogin: "العودة لتسجيل الدخول",
   },
   en: {
     title: "An Error Occurred",
-    errorCode: "Error code:",
-    unknownError: "An unknown error occurred. Please try again.",
     backToLogin: "Back to Login",
   },
 }
@@ -26,6 +39,11 @@ export default function AuthErrorPage() {
   const error = searchParams.get("error")
   const locale = useLocale()
   const t = translations[locale]
+  const messages = errorMessages[locale]
+
+  const errorMessage = error 
+    ? messages[error as keyof typeof messages] || messages.Default
+    : messages.Default
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center bg-muted/30 p-6 md:p-10">
@@ -38,11 +56,7 @@ export default function AuthErrorPage() {
             <CardTitle className="text-2xl">{t.title}</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
-            {error ? (
-              <p className="text-sm text-muted-foreground">{t.errorCode} {error}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t.unknownError}</p>
-            )}
+            <p className="text-sm text-muted-foreground">{errorMessage}</p>
           </CardContent>
         </Card>
         <div className="mt-4 text-center">

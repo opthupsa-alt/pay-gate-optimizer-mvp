@@ -56,6 +56,15 @@ const translations = {
     poweredBy: 'مقدم من',
     topPick: 'الخيار الأفضل',
     rank: 'الترتيب',
+    // New fields
+    pros: 'المميزات',
+    cons: 'العيوب',
+    activationTime: 'مدة التفعيل',
+    settlementDays: 'مدة التسوية',
+    supportChannels: 'قنوات الدعم',
+    visitWebsite: 'زيارة الموقع',
+    days: 'أيام',
+    hours24: 'ساعة',
   },
   en: {
     title: 'Payment Gateway Comparison Report',
@@ -81,6 +90,15 @@ const translations = {
     poweredBy: 'Powered by',
     topPick: 'Top Pick',
     rank: 'Rank',
+    // New fields
+    pros: 'Pros',
+    cons: 'Cons',
+    activationTime: 'Activation Time',
+    settlementDays: 'Settlement Period',
+    supportChannels: 'Support Channels',
+    visitWebsite: 'Visit Website',
+    days: 'days',
+    hours24: 'hours',
   }
 }
 
@@ -90,16 +108,41 @@ const translations = {
  * Bilingual translations for reasons and caveats
  */
 const reasonsCaveatsTranslations: Record<string, { ar: string; en: string }> = {
+  // Reasons - Basic
   "يدعم مدى": { ar: "يدعم مدى", en: "Supports Mada" },
   "Supports Mada": { ar: "يدعم مدى", en: "Supports Mada" },
   "يدعم Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
   "Supports Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "يدعم Google Pay": { ar: "يدعم Google Pay", en: "Supports Google Pay" },
+  "Supports Google Pay": { ar: "يدعم Google Pay", en: "Supports Google Pay" },
   "يدعم قطاعك": { ar: "يدعم قطاعك", en: "Supports your sector" },
   "Supports your sector": { ar: "يدعم قطاعك", en: "Supports your sector" },
   "تفعيل سريع": { ar: "تفعيل سريع", en: "Fast activation" },
   "Fast activation": { ar: "تفعيل سريع", en: "Fast activation" },
   "دعم فني ممتاز": { ar: "دعم فني ممتاز", en: "Excellent support" },
   "Excellent support": { ar: "دعم فني ممتاز", en: "Excellent support" },
+  // Reasons - New
+  "يدعم تابي/تمارا": { ar: "يدعم تابي/تمارا", en: "Supports Tabby/Tamara BNPL" },
+  "Supports Tabby/Tamara BNPL": { ar: "يدعم تابي/تمارا", en: "Supports Tabby/Tamara BNPL" },
+  "يدعم العملات المتعددة": { ar: "يدعم العملات المتعددة", en: "Supports multi-currency" },
+  "Supports multi-currency": { ar: "يدعم العملات المتعددة", en: "Supports multi-currency" },
+  "يدعم الدفعات المتكررة": { ar: "يدعم الدفعات المتكررة", en: "Supports recurring payments" },
+  "Supports recurring payments": { ar: "يدعم الدفعات المتكررة", en: "Supports recurring payments" },
+  "تسوية سريعة": { ar: "تسوية سريعة", en: "Fast settlement" },
+  "Fast settlement": { ar: "تسوية سريعة", en: "Fast settlement" },
+  "تكامل مع Shopify": { ar: "تكامل مع Shopify", en: "Shopify integration" },
+  "Shopify integration": { ar: "تكامل مع Shopify", en: "Shopify integration" },
+  "تكامل مع WooCommerce": { ar: "تكامل مع WooCommerce", en: "WooCommerce integration" },
+  "WooCommerce integration": { ar: "تكامل مع WooCommerce", en: "WooCommerce integration" },
+  "تكامل مع سلة": { ar: "تكامل مع سلة", en: "Salla integration" },
+  "Salla integration": { ar: "تكامل مع سلة", en: "Salla integration" },
+  // Caveats - New
+  "تفعيل بطيء": { ar: "تفعيل بطيء", en: "Slow activation time" },
+  "Slow activation time": { ar: "تفعيل بطيء", en: "Slow activation time" },
+  "تسوية بطيئة": { ar: "تسوية بطيئة", en: "Slow settlement time" },
+  "Slow settlement time": { ar: "تسوية بطيئة", en: "Slow settlement time" },
+  "ساعات دعم محدودة": { ar: "ساعات دعم محدودة", en: "Limited support hours" },
+  "Limited support hours": { ar: "ساعات دعم محدودة", en: "Limited support hours" },
 }
 
 /**
@@ -167,12 +210,51 @@ function generateReportHTML(options: GeneratePDFOptions): string {
     const setupFee = rec.provider?.setup_fee ? formatCurrency(rec.provider.setup_fee, t.currency) : '-'
     const monthlyFee = rec.provider?.monthly_fee ? formatCurrency(rec.provider.monthly_fee, t.currency) : '-'
     
+    // Get new fields from recommendation
+    const recAny = rec as any
+    const prosAr = recAny.pros_ar || []
+    const prosEn = recAny.pros_en || []
+    const consAr = recAny.cons_ar || []
+    const consEn = recAny.cons_en || []
+    const pros = locale === 'ar' ? prosAr : prosEn
+    const cons = locale === 'ar' ? consAr : consEn
+    const activationMin = recAny.activation_time_min
+    const activationMax = recAny.activation_time_max
+    const settlementMin = recAny.settlement_days_min
+    const settlementMax = recAny.settlement_days_max
+    const supportChannels = recAny.support_channels || []
+    const docsUrl = recAny.docs_url
+    
     const reasonsHTML = rec.reasons && rec.reasons.length > 0 
       ? `<div class="reasons"><strong>${t.reasons}:</strong><ul>${rec.reasons.map(r => `<li>${translateReasonCaveat(r, locale)}</li>`).join('')}</ul></div>`
       : ''
     
     const caveatsHTML = rec.caveats && rec.caveats.length > 0
       ? `<div class="caveats"><strong>${t.caveats}:</strong><ul>${rec.caveats.map(c => `<li>${translateReasonCaveat(c, locale)}</li>`).join('')}</ul></div>`
+      : ''
+    
+    // Generate pros/cons HTML
+    const prosHTML = pros.length > 0
+      ? `<div class="pros"><strong>✓ ${t.pros}:</strong><ul>${pros.map((p: string) => `<li>${p}</li>`).join('')}</ul></div>`
+      : ''
+    
+    const consHTML = cons.length > 0
+      ? `<div class="cons"><strong>⚠ ${t.cons}:</strong><ul>${cons.map((c: string) => `<li>${c}</li>`).join('')}</ul></div>`
+      : ''
+    
+    // Generate provider details HTML
+    const activationText = activationMin && activationMax
+      ? `${activationMin}-${activationMax} ${t.days}`
+      : activationMin ? `${activationMin}+ ${t.days}` : '-'
+    
+    const settlementText = settlementMin && settlementMax
+      ? `${settlementMin}-${settlementMax} ${t.days}`
+      : settlementMin ? `${settlementMin}+ ${t.days}` : '-'
+    
+    const supportText = supportChannels.length > 0 ? supportChannels.join(', ') : '-'
+    
+    const websiteHTML = docsUrl
+      ? `<a href="${docsUrl}" target="_blank" class="website-link">${t.visitWebsite}</a>`
       : ''
 
     return `
@@ -202,10 +284,25 @@ function generateReportHTML(options: GeneratePDFOptions): string {
           <span class="detail-label">${t.monthlyFee}</span>
           <span class="detail-value">${monthlyFee}</span>
         </div>
+        <div class="detail-row">
+          <span class="detail-label">${t.activationTime}</span>
+          <span class="detail-value">${activationText}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">${t.settlementDays}</span>
+          <span class="detail-value">${settlementText}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">${t.supportChannels}</span>
+          <span class="detail-value">${supportText}</span>
+        </div>
       </div>
       
+      ${prosHTML}
+      ${consHTML}
       ${reasonsHTML}
       ${caveatsHTML}
+      ${websiteHTML}
     </div>`
   }).join('')
 
@@ -418,7 +515,7 @@ function generateReportHTML(options: GeneratePDFOptions): string {
       color: #1e293b;
     }
     
-    .reasons, .caveats {
+    .reasons, .caveats, .pros, .cons {
       margin-top: 16px;
       padding: 16px;
       border-radius: 10px;
@@ -435,13 +532,40 @@ function generateReportHTML(options: GeneratePDFOptions): string {
       border: 1px solid #fcd34d;
     }
     
-    .reasons ul, .caveats ul {
+    .pros {
+      background: #ecfdf5;
+      border: 1px solid #6ee7b7;
+    }
+    
+    .cons {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+    }
+    
+    .reasons ul, .caveats ul, .pros ul, .cons ul {
       margin: 8px 0 0 20px;
       padding: 0;
     }
     
-    .reasons li, .caveats li {
+    .reasons li, .caveats li, .pros li, .cons li {
       margin-bottom: 4px;
+    }
+    
+    .website-link {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 10px 20px;
+      background: #059669;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    
+    .website-link:hover {
+      background: #047857;
     }
     
     .footer {
