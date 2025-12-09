@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     const body: SendRequest = await request.json()
     const { leadId, wizardRunId, locale = "ar" } = body
     let { pdfUrl } = body
+    let pdfBase64: string | undefined
 
     // Validate required fields
     if (!leadId || !wizardRunId) {
@@ -167,7 +168,10 @@ export async function POST(request: NextRequest) {
 
         console.log("PDF generated successfully. Method:", pdfResult.method, "Size:", pdfResult.pdfBase64?.length || 0)
 
-        // Save PDF to temp storage
+        // Store base64 for direct sending
+        pdfBase64 = pdfResult.pdfBase64
+
+        // Also save PDF to temp storage for URL fallback
         const pdfBuffer = Buffer.from(pdfResult.pdfBase64, 'base64')
         const savedPdf = await savePDF(pdfBuffer, wizardRunId)
         pdfUrl = `${baseUrl}${savedPdf.url}`
@@ -184,19 +188,53 @@ export async function POST(request: NextRequest) {
 
     const platformUrl = `${baseUrl}/results/${wizardRunId}`
 
-    // Send via WhatsApp
-    const { textResult, docResult } = await sendResultsViaWhatsApp(
-      lead.phoneNormalized,
-      pdfUrl,
-      lead.name,
-      platformUrl,
-      locale
-    )
+    // Try sending PDF as base64 first (more reliable), fallback to URL
+    let textResult: { success: boolean; error?: string }
+    let docResult: { success: boolean; error?: string }
+    
+    if (pdfBase64) {
+      // Send via WhatsApp with base64 PDF
+      const result = await sendResultsViaWhatsApp(
+        lead.phoneNormalized,
+        pdfBase64,
+        lead.name,
+        platformUrl,
+        locale,
+        { isBase64: true, fileName: `paygate-report-${wizardRunId.slice(0, 8)}.pdf` }
+      )
+      textResult = result.textResult
+      docResult = result.docResult
+      
+      // If base64 failed for document, try URL fallback
+      if (!docResult.success && pdfUrl) {
+        console.log("Base64 document failed, trying URL fallback...")
+        const urlResult = await sendResultsViaWhatsApp(
+          lead.phoneNormalized,
+          pdfUrl,
+          lead.name,
+          platformUrl,
+          locale
+        )
+        docResult = urlResult.docResult
+      }
+    } else {
+      // Send via WhatsApp with URL
+      const result = await sendResultsViaWhatsApp(
+        lead.phoneNormalized,
+        pdfUrl,
+        lead.name,
+        platformUrl,
+        locale
+      )
+      textResult = result.textResult
+      docResult = result.docResult
+    }
 
     console.log("WhatsApp send results:", { 
       textResult: { success: textResult.success, error: textResult.error },
       docResult: { success: docResult.success, error: docResult.error },
-      pdfUrl
+      pdfUrl,
+      usedBase64: !!pdfBase64
     })
 
     // Determine overall success
