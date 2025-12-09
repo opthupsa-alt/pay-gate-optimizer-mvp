@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/db"
+import { Decimal } from "@prisma/client/runtime/library"
 
 export const dynamic = "force-dynamic"
 
@@ -29,6 +30,35 @@ function parseJsonFields(obj: Record<string, unknown>): Record<string, unknown> 
       }
     }
   }
+  return obj
+}
+
+// Convert Decimal to number
+function convertDecimals(obj: unknown): unknown {
+  if (obj === null || obj === undefined) return obj
+  
+  // Check if it's a Prisma Decimal
+  if (obj instanceof Decimal) {
+    return obj.toNumber()
+  }
+  
+  // Check if it's a Decimal-like object (has toNumber method)
+  if (typeof obj === 'object' && obj !== null && 'toNumber' in obj && typeof (obj as { toNumber: unknown }).toNumber === 'function') {
+    return (obj as { toNumber: () => number }).toNumber()
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertDecimals(item))
+  }
+  
+  if (typeof obj === 'object' && obj !== null) {
+    const result: Record<string, unknown> = {}
+    for (const key in obj) {
+      result[key] = convertDecimals((obj as Record<string, unknown>)[key])
+    }
+    return result
+  }
+  
   return obj
 }
 
@@ -100,12 +130,17 @@ export async function GET(
       )
     }
 
-    // Transform to snake_case for frontend consistency
-    const transformedProvider = transformKeys(provider as unknown as Record<string, unknown>)
+    // First convert Decimals to numbers, then transform keys to snake_case
+    const convertedProvider = convertDecimals(provider) as Record<string, unknown>
+    const transformedProvider = transformKeys(convertedProvider)
+
+    const convertedSources = (provider.providerSources || []).map(s => 
+      transformKeys(convertDecimals(s) as Record<string, unknown>)
+    )
 
     return NextResponse.json({
       provider: transformedProvider,
-      sources: (provider.providerSources || []).map(s => transformKeys(s as unknown as Record<string, unknown>)),
+      sources: convertedSources,
     })
   } catch (error) {
     console.error("Error fetching provider:", error)
