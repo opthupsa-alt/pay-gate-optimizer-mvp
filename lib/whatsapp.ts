@@ -77,6 +77,7 @@ interface WhatsAppDocumentMessage {
   from: string
   to: string
   docUrl: string
+  filename: string  // Required! وشيج يحتاج اسم الملف
   caption: string
 }
 
@@ -160,7 +161,8 @@ export async function sendWhatsAppText(
 export async function sendWhatsAppDocument(
   to: string,
   docUrl: string,
-  caption: string
+  caption: string,
+  filename: string = "paygate-report.pdf"  // اسم الملف مطلوب!
 ): Promise<WhatsAppApiResponse> {
   const token = process.env.WHATSAPP_QR_API_TOKEN
   
@@ -182,6 +184,7 @@ export async function sendWhatsAppDocument(
 
   // Build payload with public URL
   // وشيج يسحب الملف من الرابط ويرسله للعميل
+  // filename مطلوب! بدونه يفشل الإرسال بخطأ 300
   const payload: WhatsAppDocumentMessage = {
     messageType: "document",
     requestType: "POST",
@@ -189,6 +192,7 @@ export async function sendWhatsAppDocument(
     from: settings.fromNumber,
     to: normalizePhoneForApi(to),
     docUrl,
+    filename,  // *** مهم جداً! ***
     caption,
   }
 
@@ -251,14 +255,19 @@ export async function sendResultsViaWhatsApp(
   const textMessage = generateWelcomeMessage(recipientName, platformUrl, locale)
   const pdfCaption = generatePdfCaption(locale)
   
+  // Generate filename
+  const filename = locale === "ar" 
+    ? "تقرير-بوابات-الدفع.pdf" 
+    : "paygate-comparison-report.pdf"
+  
   // Send text message first
   const textResult = await sendWhatsAppText(to, textMessage)
   
   // Wait a moment before sending document
   await new Promise(resolve => setTimeout(resolve, 1000))
   
-  // Send PDF document via public URL
-  const docResult = await sendWhatsAppDocument(to, pdfUrl, pdfCaption)
+  // Send PDF document via public URL (with filename!)
+  const docResult = await sendWhatsAppDocument(to, pdfUrl, pdfCaption, filename)
   
   return { textResult, docResult }
 }
