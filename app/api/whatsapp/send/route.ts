@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { sendResultsViaWhatsApp } from "@/lib/whatsapp"
-import { generatePDF } from "@/lib/pdf-generator"
+import { generateProfessionalPDF } from "@/lib/pdf-service"
+import { savePDF } from "@/lib/pdf-storage"
 import type { Recommendation, WizardFormData, PaymentMix, WizardNeeds, CostBreakdown } from "@/lib/types"
 
 interface SendRequest {
@@ -146,15 +147,28 @@ export async function POST(request: NextRequest) {
           locale,
         }
 
-        // Generate PDF
-        const pdf = await generatePDF({
+        const sectorName = wizardRun.sector ? (locale === "ar" ? wizardRun.sector.nameAr : wizardRun.sector.nameEn) : undefined
+
+        // Generate professional PDF
+        const pdfResult = await generateProfessionalPDF({
           locale,
           wizardData,
           recommendations,
-          sectorName: wizardRun.sector ? (locale === "ar" ? wizardRun.sector.nameAr : wizardRun.sector.nameEn) : undefined,
+          sectorName,
         })
 
-        pdfUrl = `${baseUrl}${pdf.url}`
+        if (!pdfResult.success || !pdfResult.pdfBase64) {
+          console.error("PDF generation failed:", pdfResult.error)
+          return NextResponse.json(
+            { error: "Failed to generate PDF" },
+            { status: 500 }
+          )
+        }
+
+        // Save PDF to temp storage
+        const pdfBuffer = Buffer.from(pdfResult.pdfBase64, 'base64')
+        const savedPdf = await savePDF(pdfBuffer, wizardRunId)
+        pdfUrl = `${baseUrl}${savedPdf.url}`
       } catch (pdfError) {
         console.error("PDF generation error:", pdfError)
         return NextResponse.json(

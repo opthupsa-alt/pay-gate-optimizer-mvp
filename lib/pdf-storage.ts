@@ -49,10 +49,10 @@ export interface PDFStats {
 /**
  * Save PDF buffer to temp directory
  */
-export async function savePDF(buffer: Buffer): Promise<GeneratedPDF> {
+export async function savePDF(buffer: Buffer, wizardRunId?: string): Promise<GeneratedPDF> {
   ensureTempDir()
   
-  const id = uuidv4()
+  const id = wizardRunId || uuidv4()
   const fileName = `report-${id}.pdf`
   const filePath = path.join(TEMP_PDF_DIR, fileName)
 

@@ -91,6 +91,7 @@ export default function ResultsPage() {
   const [isExporting, setIsExporting] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showLeadForm, setShowLeadForm] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [leadForm, setLeadForm] = useState({
     name: "",
     email: "",
@@ -100,13 +101,37 @@ export default function ResultsPage() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false)
 
   useEffect(() => {
-    // Get data from sessionStorage
-    const storedData = sessionStorage.getItem(`wizard-result-${params.id}`)
-    if (storedData) {
-      const parsed = JSON.parse(storedData)
-      setData(parsed)
-      setLocale(parsed.wizardRun?.locale || "ar")
+    async function loadResults() {
+      setIsLoading(true)
+      
+      // First, try to get from sessionStorage (fastest for same browser)
+      const storedData = sessionStorage.getItem(`wizard-result-${params.id}`)
+      if (storedData) {
+        const parsed = JSON.parse(storedData)
+        setData(parsed)
+        setLocale(parsed.wizardRun?.locale || "ar")
+        setIsLoading(false)
+        return
+      }
+      
+      // If not in sessionStorage, fetch from API (for shared links)
+      try {
+        const response = await fetch(`/api/results/${params.id}`)
+        if (response.ok) {
+          const apiData = await response.json()
+          setData(apiData)
+          setLocale(apiData.wizardRun?.locale || "ar")
+          // Cache in sessionStorage for future use
+          sessionStorage.setItem(`wizard-result-${params.id}`, JSON.stringify(apiData))
+        }
+      } catch (error) {
+        console.error("Failed to fetch results:", error)
+      }
+      
+      setIsLoading(false)
     }
+    
+    loadResults()
   }, [params.id])
 
   const isRTL = locale === "ar"
@@ -358,6 +383,20 @@ export default function ResultsPage() {
       return t.rank[index]
     }
     return `${t.rankN}${index + 1}`
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="container py-8 sm:py-12" dir={isRTL ? "rtl" : "ltr"}>
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>{locale === "ar" ? "جاري تحميل النتائج..." : "Loading results..."}</span>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!data || !data.recommendations || data.recommendations.length === 0) {
