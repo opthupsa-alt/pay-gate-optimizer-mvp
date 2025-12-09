@@ -1,0 +1,131 @@
+{
+  "_comment": "انسخ هذا الملف وعدّله لكل بوابة جديدة - احذف هذا التعليق بعد الملء",
+  
+  "slug": "provider-slug",
+  "nameAr": "اسم البوابة",
+  "nameEn": "Provider Name",
+  "websiteUrl": "https://example.com",
+  "pricingUrl": "https://example.com/pricing",
+  "docsUrl": "https://docs.example.com",
+  
+  "category": "payment_gateway",
+  "status": "active",
+  
+  "fees": {
+    "setupFee": 0,
+    "monthlyFee": 0,
+    "transactionFees": {
+      "mada": { "percent": 0, "fixed": 0, "notes": "" },
+      "visa": { "percent": 0, "fixed": 0, "notes": "" },
+      "mastercard": { "percent": 0, "fixed": 0, "notes": "" },
+      "amex": { "percent": 0, "fixed": 0, "notes": "" },
+      "apple_pay": { "percent": 0, "fixed": 0, "notes": "" },
+      "google_pay": { "percent": 0, "fixed": 0, "notes": "" },
+      "stc_pay": { "percent": 0, "fixed": 0, "notes": "" },
+      "sadad": { "percent": 0, "fixed": 0, "notes": "" },
+      "tabby": { "percent": 0, "fixed": 0, "notes": "" },
+      "tamara": { "percent": 0, "fixed": 0, "notes": "" }
+    },
+    "refundFee": 0,
+    "chargebackFee": 0
+  },
+  
+  "paymentMethods": {
+    "mada": { "isSupported": false, "supportsRecurring": false },
+    "visa": { "isSupported": false, "supportsRecurring": false },
+    "mastercard": { "isSupported": false, "supportsRecurring": false },
+    "amex": { "isSupported": false, "supportsRecurring": false },
+    "apple_pay": { "isSupported": false, "supportsRecurring": false },
+    "google_pay": { "isSupported": false, "supportsRecurring": false },
+    "stc_pay": { "isSupported": false, "supportsRecurring": false },
+    "sadad": { "isSupported": false, "supportsRecurring": false },
+    "bank_transfer": { "isSupported": false, "supportsRecurring": false },
+    "tabby": { "isSupported": false, "supportsRecurring": false },
+    "tamara": { "isSupported": false, "supportsRecurring": false }
+  },
+  
+  "operations": {
+    "activationDaysMin": 0,
+    "activationDaysMax": 0,
+    "settlementDaysMin": 0,
+    "settlementDaysMax": 0,
+    "payoutSchedule": "daily",
+    "payoutMinAmount": 0
+  },
+  
+  "support": {
+    "channels": [],
+    "hours": "",
+    "languages": []
+  },
+  
+  "opsScores": {
+    "onboardingScore": 0,
+    "supportScore": 0,
+    "docsScore": 0
+  },
+  
+  "rating": {
+    "average": 0,
+    "count": 0,
+    "source": ""
+  },
+  
+  "capabilities": [],
+  
+  "sectors": {
+    "ecommerce": "supported",
+    "retail": "supported",
+    "services": "supported",
+    "restaurants": "supported",
+    "healthcare": "supported",
+    "education": "supported",
+    "subscription": "supported",
+    "saas": "supported",
+    "marketplace": "supported",
+    "gaming": "supported"
+  },
+  
+  "integrations": [
+    {
+      "platform": "shopify",
+      "isAvailable": false,
+      "isOfficial": false,
+      "setupDifficulty": "easy"
+    },
+    {
+      "platform": "woocommerce",
+      "isAvailable": false,
+      "isOfficial": false,
+      "setupDifficulty": "easy"
+    },
+    {
+      "platform": "salla",
+      "isAvailable": false,
+      "isOfficial": false,
+      "setupDifficulty": "easy"
+    },
+    {
+      "platform": "zid",
+      "isAvailable": false,
+      "isOfficial": false,
+      "setupDifficulty": "easy"
+    },
+    {
+      "platform": "custom_api",
+      "isAvailable": false,
+      "isOfficial": false,
+      "setupDifficulty": "medium"
+    }
+  ],
+  
+  "prosAr": [],
+  "prosEn": [],
+  "consAr": [],
+  "consEn": [],
+  
+  "dataSource": {
+    "lastVerified": "2025-01-01",
+    "notes": "يجب التحقق من الأسعار الحالية من الموقع الرسمي"
+  }
+}

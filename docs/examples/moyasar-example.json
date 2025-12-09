@@ -1,0 +1,240 @@
+{
+  "$schema": "../provider-data-schema.json",
+  "_comment": "هذا مثال كامل لبيانات موياسر - يجب التحقق من الأرقام من الموقع الرسمي",
+  
+  "slug": "moyasar",
+  "nameAr": "موياسر",
+  "nameEn": "Moyasar",
+  "websiteUrl": "https://moyasar.com",
+  "pricingUrl": "https://moyasar.com/pricing",
+  "docsUrl": "https://docs.moyasar.com",
+  
+  "category": "payment_gateway",
+  "status": "active",
+  
+  "fees": {
+    "setupFee": 0,
+    "monthlyFee": 0,
+    "transactionFees": {
+      "mada": {
+        "percent": 1.75,
+        "fixed": 1,
+        "notes": "تحقق من الأسعار الحالية"
+      },
+      "visa": {
+        "percent": 2.5,
+        "fixed": 1,
+        "notes": ""
+      },
+      "mastercard": {
+        "percent": 2.5,
+        "fixed": 1,
+        "notes": ""
+      },
+      "amex": {
+        "percent": 2.9,
+        "fixed": 1,
+        "notes": "أمريكان إكسبريس نسبة أعلى"
+      },
+      "apple_pay": {
+        "percent": 2.5,
+        "fixed": 1,
+        "notes": "نفس نسبة البطاقات"
+      },
+      "google_pay": {
+        "percent": 2.5,
+        "fixed": 1,
+        "notes": ""
+      },
+      "stc_pay": {
+        "percent": 2.0,
+        "fixed": 1,
+        "notes": ""
+      }
+    },
+    "refundFee": 0,
+    "chargebackFee": 0
+  },
+  
+  "paymentMethods": {
+    "mada": {
+      "isSupported": true,
+      "supportsRecurring": false
+    },
+    "visa": {
+      "isSupported": true,
+      "supportsRecurring": true
+    },
+    "mastercard": {
+      "isSupported": true,
+      "supportsRecurring": true
+    },
+    "amex": {
+      "isSupported": true,
+      "supportsRecurring": true
+    },
+    "apple_pay": {
+      "isSupported": true,
+      "supportsRecurring": false
+    },
+    "google_pay": {
+      "isSupported": true,
+      "supportsRecurring": false
+    },
+    "stc_pay": {
+      "isSupported": true,
+      "supportsRecurring": false
+    },
+    "sadad": {
+      "isSupported": false,
+      "supportsRecurring": false
+    },
+    "bank_transfer": {
+      "isSupported": false,
+      "supportsRecurring": false
+    },
+    "tabby": {
+      "isSupported": false,
+      "supportsRecurring": false
+    },
+    "tamara": {
+      "isSupported": false,
+      "supportsRecurring": false
+    }
+  },
+  
+  "operations": {
+    "activationDaysMin": 1,
+    "activationDaysMax": 3,
+    "settlementDaysMin": 1,
+    "settlementDaysMax": 2,
+    "payoutSchedule": "daily",
+    "payoutMinAmount": 0
+  },
+  
+  "support": {
+    "channels": ["email", "chat", "whatsapp"],
+    "hours": "9AM-6PM Sun-Thu",
+    "languages": ["ar", "en"]
+  },
+  
+  "opsScores": {
+    "onboardingScore": 90,
+    "supportScore": 85,
+    "docsScore": 95
+  },
+  
+  "rating": {
+    "average": 4.5,
+    "count": 150,
+    "source": "Internal"
+  },
+  
+  "capabilities": [
+    "recurring",
+    "tokenization",
+    "plugins_shopify",
+    "plugins_woocommerce",
+    "plugins_salla",
+    "plugins_zid",
+    "mobile_sdk",
+    "payment_links",
+    "invoicing"
+  ],
+  
+  "sectors": {
+    "ecommerce": "supported",
+    "retail": "supported",
+    "services": "supported",
+    "restaurants": "supported",
+    "healthcare": "supported",
+    "education": "supported",
+    "subscription": "supported",
+    "saas": "supported",
+    "marketplace": "supported",
+    "gaming": "restricted"
+  },
+  
+  "integrations": [
+    {
+      "platform": "shopify",
+      "isAvailable": true,
+      "isOfficial": true,
+      "pluginUrl": "https://apps.shopify.com/moyasar",
+      "setupDifficulty": "easy"
+    },
+    {
+      "platform": "woocommerce",
+      "isAvailable": true,
+      "isOfficial": true,
+      "pluginUrl": "https://wordpress.org/plugins/moyasar",
+      "setupDifficulty": "easy"
+    },
+    {
+      "platform": "salla",
+      "isAvailable": true,
+      "isOfficial": true,
+      "setupDifficulty": "easy"
+    },
+    {
+      "platform": "zid",
+      "isAvailable": true,
+      "isOfficial": true,
+      "setupDifficulty": "easy"
+    },
+    {
+      "platform": "magento",
+      "isAvailable": true,
+      "isOfficial": false,
+      "setupDifficulty": "medium"
+    },
+    {
+      "platform": "custom_api",
+      "isAvailable": true,
+      "isOfficial": true,
+      "pluginUrl": "https://docs.moyasar.com",
+      "setupDifficulty": "medium"
+    },
+    {
+      "platform": "mobile_sdk",
+      "isAvailable": true,
+      "isOfficial": true,
+      "pluginUrl": "https://docs.moyasar.com/sdk",
+      "setupDifficulty": "medium"
+    }
+  ],
+  
+  "prosAr": [
+    "تفعيل سريع خلال 1-3 أيام",
+    "واجهة عربية سهلة الاستخدام",
+    "دعم ممتاز للمنصات السعودية (سلة، زد)",
+    "توثيق تقني ممتاز",
+    "لا رسوم شهرية أو تسجيل",
+    "تسوية يومية"
+  ],
+  
+  "prosEn": [
+    "Fast activation within 1-3 days",
+    "Easy-to-use Arabic interface",
+    "Excellent support for Saudi platforms (Salla, Zid)",
+    "Excellent technical documentation",
+    "No monthly or setup fees",
+    "Daily settlement"
+  ],
+  
+  "consAr": [
+    "لا يدعم سداد",
+    "قد لا يناسب القطاعات عالية المخاطر"
+  ],
+  
+  "consEn": [
+    "Does not support SADAD",
+    "May not suit high-risk sectors"
+  ],
+  
+  "dataSource": {
+    "pricingUrl": "https://moyasar.com/pricing",
+    "lastVerified": "2025-01-01",
+    "notes": "يجب التحقق من الأسعار الحالية - قد تتغير"
+  }
+}
