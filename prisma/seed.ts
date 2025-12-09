@@ -3,6 +3,176 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+// Provider Fees Data
+function getProviderFees(slug: string) {
+  const feesMap: Record<string, Array<{
+    paymentMethodCode: string
+    feePercent: number
+    feeFixed: number
+    notesAr?: string
+    notesEn?: string
+    isEstimated: boolean
+  }>> = {
+    moyasar: [
+      { paymentMethodCode: 'mada', feePercent: 1.5, feeFixed: 1, notesAr: 'تقديري', notesEn: 'Estimated', isEstimated: true },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.2, feeFixed: 1, notesAr: 'تقديري', notesEn: 'Estimated', isEstimated: true },
+      { paymentMethodCode: 'apple_pay', feePercent: 2.2, feeFixed: 1, isEstimated: true },
+      { paymentMethodCode: 'stc_pay', feePercent: 2.2, feeFixed: 1, isEstimated: true },
+    ],
+    tap: [
+      { paymentMethodCode: 'mada', feePercent: 1.75, feeFixed: 0.5, isEstimated: false },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.5, feeFixed: 0.5, isEstimated: false },
+      { paymentMethodCode: 'apple_pay', feePercent: 2.5, feeFixed: 0.5, isEstimated: false },
+      { paymentMethodCode: 'google_pay', feePercent: 2.5, feeFixed: 0.5, isEstimated: false },
+    ],
+    hyperpay: [
+      { paymentMethodCode: 'mada', feePercent: 1.75, feeFixed: 1, isEstimated: true },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.75, feeFixed: 1, isEstimated: true },
+      { paymentMethodCode: 'apple_pay', feePercent: 2.75, feeFixed: 1, isEstimated: true },
+    ],
+    payfort: [
+      { paymentMethodCode: 'mada', feePercent: 2.0, feeFixed: 1, isEstimated: true },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.9, feeFixed: 1, isEstimated: true },
+    ],
+    geidea: [
+      { paymentMethodCode: 'mada', feePercent: 1.6, feeFixed: 0, notesAr: 'للمتاجر الكبيرة', isEstimated: true },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.4, feeFixed: 0, isEstimated: true },
+    ],
+    myfatoorah: [
+      { paymentMethodCode: 'mada', feePercent: 1.75, feeFixed: 1, isEstimated: false },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.65, feeFixed: 1, isEstimated: false },
+      { paymentMethodCode: 'apple_pay', feePercent: 2.65, feeFixed: 1, isEstimated: false },
+    ],
+    paytabs: [
+      { paymentMethodCode: 'mada', feePercent: 1.9, feeFixed: 1, isEstimated: false },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.85, feeFixed: 1, isEstimated: false },
+    ],
+    telr: [
+      { paymentMethodCode: 'mada', feePercent: 1.8, feeFixed: 1, isEstimated: true },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.7, feeFixed: 1, isEstimated: true },
+    ],
+    paylink: [
+      { paymentMethodCode: 'mada', feePercent: 1.5, feeFixed: 0.5, notesAr: 'أفضل سعر للسعودية', isEstimated: false },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.5, feeFixed: 0.5, isEstimated: false },
+      { paymentMethodCode: 'apple_pay', feePercent: 2.5, feeFixed: 0.5, isEstimated: false },
+    ],
+    tabby: [
+      { paymentMethodCode: 'tabby', feePercent: 5.5, feeFixed: 0, notesAr: 'رسوم على التاجر', notesEn: 'Merchant fee', isEstimated: false },
+    ],
+    tamara: [
+      { paymentMethodCode: 'tamara', feePercent: 5.0, feeFixed: 0, notesAr: 'رسوم على التاجر', notesEn: 'Merchant fee', isEstimated: false },
+    ],
+    stcpay: [
+      { paymentMethodCode: 'stc_pay', feePercent: 1.5, feeFixed: 0, isEstimated: true },
+    ],
+    checkout: [
+      { paymentMethodCode: 'mada', feePercent: 1.9, feeFixed: 0.2, isEstimated: true },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.9, feeFixed: 0.2, isEstimated: true },
+    ],
+    stripe: [
+      { paymentMethodCode: 'mada', feePercent: 2.5, feeFixed: 1, notesAr: 'حديث في السعودية', isEstimated: false },
+      { paymentMethodCode: 'visa_mc', feePercent: 2.9, feeFixed: 1, isEstimated: false },
+    ],
+  }
+  return feesMap[slug] || []
+}
+
+// Provider Integrations Data
+function getProviderIntegrations(slug: string) {
+  const integrationsMap: Record<string, Array<{
+    platform: 'shopify' | 'woocommerce' | 'magento' | 'opencart' | 'salla' | 'zid' | 'custom_api'
+    integrationType: 'plugin' | 'api' | 'hosted' | 'redirect' | 'sdk'
+    isOfficial: boolean
+    setupDifficulty: 'easy' | 'medium' | 'hard'
+    officialUrl?: string
+  }>> = {
+    moyasar: [
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy', officialUrl: 'https://apps.shopify.com/moyasar' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy', officialUrl: 'https://wordpress.org/plugins/moyasar-payments' },
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'zid', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: false, setupDifficulty: 'medium' },
+    ],
+    tap: [
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'zid', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+      { platform: 'opencart', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+    ],
+    hyperpay: [
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'hard' },
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+    ],
+    payfort: [
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'hard' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'hard' },
+      { platform: 'shopify', integrationType: 'api', isOfficial: false, setupDifficulty: 'hard' },
+    ],
+    geidea: [
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'zid', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+    ],
+    myfatoorah: [
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'zid', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'opencart', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+    ],
+    paytabs: [
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+    ],
+    telr: [
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+      { platform: 'opencart', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+    ],
+    paylink: [
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'zid', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+    ],
+    tabby: [
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'zid', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+    ],
+    tamara: [
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'zid', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+    ],
+    stcpay: [
+      { platform: 'salla', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'zid', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+    ],
+    checkout: [
+      { platform: 'shopify', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'hard' },
+    ],
+    stripe: [
+      { platform: 'shopify', integrationType: 'api', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'woocommerce', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'easy' },
+      { platform: 'magento', integrationType: 'plugin', isOfficial: true, setupDifficulty: 'medium' },
+    ],
+  }
+  return integrationsMap[slug] || []
+}
+
 async function main() {
   console.log('🌱 Seeding database...')
 
@@ -424,8 +594,69 @@ async function main() {
         },
       })
     }
+
+    // Add provider fees (ProviderFee)
+    const feesData = getProviderFees(provider.slug)
+    for (const fee of feesData) {
+      const pm = await prisma.paymentMethod.findUnique({ where: { code: fee.paymentMethodCode } })
+      if (pm) {
+        const existingFee = await prisma.providerFee.findFirst({
+          where: {
+            providerId: created.id,
+            paymentMethodId: pm.id,
+          }
+        })
+        if (!existingFee) {
+          await prisma.providerFee.create({
+            data: {
+              providerId: created.id,
+              paymentMethodId: pm.id,
+              feePercent: fee.feePercent,
+              feeFixed: fee.feeFixed,
+              notesAr: fee.notesAr,
+              notesEn: fee.notesEn,
+              isEstimated: fee.isEstimated,
+            },
+          })
+        } else {
+          await prisma.providerFee.update({
+            where: { id: existingFee.id },
+            data: {
+              feePercent: fee.feePercent,
+              feeFixed: fee.feeFixed,
+              notesAr: fee.notesAr,
+              notesEn: fee.notesEn,
+              isEstimated: fee.isEstimated,
+            },
+          })
+        }
+      }
+    }
+
+    // Add integrations
+    const integrations = getProviderIntegrations(provider.slug)
+    for (const integration of integrations) {
+      const existing = await prisma.providerIntegration.findFirst({
+        where: {
+          providerId: created.id,
+          platform: integration.platform,
+        }
+      })
+      if (!existing) {
+        await prisma.providerIntegration.create({
+          data: {
+            providerId: created.id,
+            platform: integration.platform,
+            integrationType: integration.integrationType,
+            isOfficial: integration.isOfficial,
+            setupDifficulty: integration.setupDifficulty,
+            officialUrl: integration.officialUrl,
+          },
+        })
+      }
+    }
   }
-  console.log('✅ Providers created with pricing rules')
+  console.log('✅ Providers created with pricing rules, fees and integrations')
 
   // Create footer menus
   const footerMenus = [
