@@ -165,31 +165,31 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
   const NextArrow = isRTL ? ArrowLeft : ArrowRight
 
   return (
-    <div dir={isRTL ? "rtl" : "ltr"} className="mx-auto w-full max-w-2xl px-4 pb-6 sm:px-6 lg:px-0">
+    <div dir={isRTL ? "rtl" : "ltr"} className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
       <WizardProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} locale={locale} />
 
-      <Card className="shadow-sm border-0 sm:border">
-        <CardHeader className="px-4 py-5 sm:p-6">
+      <Card className="shadow-lg border bg-card/80 backdrop-blur-sm">
+        <CardHeader className="px-6 py-6 sm:px-8 sm:py-8 border-b bg-muted/30">
           <div className={cn(
-            "flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground",
+            "flex items-center gap-2 text-sm text-muted-foreground",
             isRTL && "font-arabic"
           )}>
-            <span>
-              {t.step} {currentStep}
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+              {currentStep}
             </span>
             <span>{t.of}</span>
             <span>{TOTAL_STEPS}</span>
           </div>
           <CardTitle className={cn(
-            "text-lg sm:text-xl md:text-2xl mt-1",
+            "text-xl sm:text-2xl md:text-3xl mt-2",
             isRTL && "font-arabic"
           )}>{stepInfo.title}</CardTitle>
           <CardDescription className={cn(
-            "text-xs sm:text-sm mt-1",
+            "text-sm sm:text-base mt-2",
             isRTL && "font-arabic"
           )}>{stepInfo.subtitle}</CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+        <CardContent className="p-6 sm:p-8">
           {currentStep === 1 && (
             <StepSector
               sectors={sectors}
@@ -268,18 +268,19 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
           )}
 
           {/* Navigation Buttons */}
-          <div className="mt-8 sm:mt-8 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="mt-10 pt-6 border-t flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4">
             <Button 
               variant="outline" 
               onClick={handleBack} 
               disabled={currentStep === 1 || isSubmitting}
+              size="lg"
               className={cn(
-                "w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-medium",
+                "w-full sm:w-auto px-8",
                 "active:scale-[0.98] transition-transform",
                 isRTL && "font-arabic"
               )}
             >
-              <BackArrow className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
+              <BackArrow className="h-5 w-5 shrink-0" />
               <span className="ms-2">{t.back}</span>
             </Button>
 
@@ -287,34 +288,36 @@ export function WizardForm({ sectors, locale }: WizardFormProps) {
               <Button 
                 onClick={handleNext} 
                 disabled={!validateStep()}
+                size="lg"
                 className={cn(
-                  "w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-medium",
-                  "active:scale-[0.98] transition-transform",
+                  "w-full sm:w-auto px-8 bg-emerald-600 hover:bg-emerald-700",
+                  "active:scale-[0.98] transition-transform shadow-lg shadow-emerald-500/20",
                   isRTL && "font-arabic"
                 )}
               >
                 <span className="me-2">{t.next}</span>
-                <NextArrow className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
+                <NextArrow className="h-5 w-5 shrink-0" />
               </Button>
             ) : (
               <Button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting || !validateStep()}
+                size="lg"
                 className={cn(
-                  "w-full sm:w-auto h-12 sm:h-11 text-base sm:text-sm font-medium",
-                  "active:scale-[0.98] transition-transform",
+                  "w-full sm:w-auto px-8 bg-emerald-600 hover:bg-emerald-700",
+                  "active:scale-[0.98] transition-transform shadow-lg shadow-emerald-500/20",
                   isRTL && "font-arabic"
                 )}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-5 w-5 sm:h-4 sm:w-4 animate-spin shrink-0" />
+                    <Loader2 className="h-5 w-5 animate-spin shrink-0" />
                     <span className="ms-2">{t.submitting}</span>
                   </>
                 ) : (
                   <>
                     <span className="me-2">{t.submit}</span>
-                    <NextArrow className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" />
+                    <NextArrow className="h-5 w-5 shrink-0" />
                   </>
                 )}
               </Button>

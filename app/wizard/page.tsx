@@ -31,13 +31,21 @@ export default async function WizardPage() {
   }
 
   return (
-    <div className="container py-8 md:py-12">
-      <div className="mx-auto mb-8 max-w-2xl text-center">
-        <h1 className="mb-2 text-3xl font-bold">{t.title}</h1>
-        <p className="text-muted-foreground">{t.subtitle}</p>
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+      {/* Header Section */}
+      <div className="bg-gradient-to-b from-muted/50 to-background py-8 md:py-12 lg:py-16">
+        <div className="container">
+          <div className="mx-auto max-w-4xl text-center">
+            <h1 className="mb-3 text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">{t.title}</h1>
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">{t.subtitle}</p>
+          </div>
+        </div>
       </div>
 
-      <WizardForm sectors={sectors} locale={locale} />
+      {/* Form Section */}
+      <div className="flex-1 container py-6 md:py-10">
+        <WizardForm sectors={sectors} locale={locale} />
+      </div>
     </div>
   )
 }
