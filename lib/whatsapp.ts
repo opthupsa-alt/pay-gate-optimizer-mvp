@@ -192,7 +192,9 @@ export async function sendWhatsAppDocument(
     caption,
   }
 
-  console.log("Sending WhatsApp document. URL:", docUrl, "To:", normalizePhoneForApi(to))
+  console.log("=== WhatsApp Document Send ===")
+  console.log("API URL:", apiUrl)
+  console.log("Payload:", JSON.stringify({ ...payload, token: "***hidden***" }, null, 2))
 
   try {
     const response = await fetch(apiUrl, {
@@ -204,7 +206,16 @@ export async function sendWhatsAppDocument(
       body: JSON.stringify(payload),
     })
 
-    const data = await response.json()
+    const responseText = await response.text()
+    console.log("WhatsApp API response status:", response.status)
+    console.log("WhatsApp API response body:", responseText)
+    
+    let data
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      data = { rawResponse: responseText }
+    }
     
     if (!response.ok) {
       return { 

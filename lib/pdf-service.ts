@@ -109,10 +109,43 @@ export function clearPDFSettingsCache() {
 
 /**
  * Generate a professional PDF from wizard results
- * Uses provider from settings, with fallbacks
+ * 
+ * الأولوية:
+ * 1. المولد المحلي (PDFKit) - الأسرع والأفضل
+ * 2. PDFShift API - احتياطي
+ * 3. HTML2PDF API - احتياطي ثاني
+ * 4. HTML fallback - الأخير
  */
 export async function generateProfessionalPDF(options: PDFGenerationOptions): Promise<PDFResult> {
   const { locale, wizardData, recommendations, sectorName } = options
+  
+  // Try local PDF generator first (no API needed!)
+  console.log('Trying local PDF generator (PDFKit)...')
+  try {
+    const { generateLocalPDF } = await import('./pdf-generator-local')
+    const localResult = await generateLocalPDF({
+      locale,
+      wizardData,
+      recommendations,
+      sectorName,
+    })
+    
+    if (localResult.success && localResult.pdfBuffer) {
+      console.log('Local PDF generated successfully!')
+      return {
+        success: true,
+        pdfBuffer: localResult.pdfBuffer,
+        pdfBase64: localResult.pdfBase64,
+        method: 'pdfshift', // We'll use this for compatibility
+      }
+    }
+    console.warn('Local PDF failed:', localResult.error)
+  } catch (error) {
+    console.warn('Local PDF generator not available:', error)
+  }
+  
+  // Fallback to external APIs
+  console.log('Falling back to external PDF APIs...')
   
   // Get settings from database
   const settings = await getPDFSettings()
@@ -125,7 +158,7 @@ export async function generateProfessionalPDF(options: PDFGenerationOptions): Pr
     }
   }
   
-  // Generate HTML content
+  // Generate HTML content for external APIs
   const htmlContent = generatePDFContent({
     locale,
     wizardData,

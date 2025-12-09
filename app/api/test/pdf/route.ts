@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateProfessionalPDF } from "@/lib/pdf-service"
 import { uploadPDFToStorage, deletePDFFromStorage } from "@/lib/pdf-upload"
+import { sendWhatsAppDocument, sendWhatsAppText } from "@/lib/whatsapp"
 
 /**
  * GET /api/test/pdf
  * 
  * Test endpoint to verify PDF generation and Supabase upload
+ * Also tests WhatsApp document sending
+ * 
+ * Query params:
+ * - phone: Phone number to test WhatsApp sending (optional)
+ * 
  * Remove this in production!
  */
 export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const testPhone = searchParams.get('phone') // e.g., ?phone=966500000000
+  
   try {
     console.log("=== PDF Test Started ===")
+    console.log("Test phone:", testPhone || "none (PDF only)")
     
     // Test data
     const testWizardData = {
@@ -109,25 +119,57 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
     
-    // Step 3: Return success with URL
-    console.log("=== PDF Test Successful ===")
+    console.log("=== PDF Upload Successful ===")
     console.log("Public URL:", uploadResult.publicUrl)
     
-    // Clean up after 30 seconds (in background)
+    // Step 3: Test WhatsApp sending if phone provided
+    let whatsappResult = null
+    if (testPhone && uploadResult.publicUrl) {
+      console.log("Step 3: Testing WhatsApp document send...")
+      
+      // First send a text message
+      const textResult = await sendWhatsAppText(
+        testPhone, 
+        "🧪 اختبار إرسال PDF\nهذه رسالة تجريبية للتحقق من إرسال الملفات"
+      )
+      console.log("WhatsApp text result:", textResult)
+      
+      // Wait a moment
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Then send the document
+      const docResult = await sendWhatsAppDocument(
+        testPhone,
+        uploadResult.publicUrl,
+        "📄 تقرير تجريبي - Test Report"
+      )
+      console.log("WhatsApp document result:", docResult)
+      
+      whatsappResult = {
+        textResult,
+        docResult,
+      }
+    }
+    
+    // Clean up after 60 seconds (give time to receive WhatsApp)
     if (uploadResult.filePath) {
       setTimeout(() => {
         deletePDFFromStorage(uploadResult.filePath!).then(deleted => {
           console.log("Test PDF cleaned up:", deleted)
         })
-      }, 30000)
+      }, 60000)
     }
     
     return NextResponse.json({
       success: true,
       pdfMethod: pdfResult.method,
+      pdfSize: pdfBuffer.length,
       publicUrl: uploadResult.publicUrl,
       filePath: uploadResult.filePath,
-      message: "PDF generated and uploaded successfully! URL will be deleted in 30 seconds.",
+      whatsappTest: whatsappResult,
+      message: testPhone 
+        ? "PDF generated, uploaded, and sent via WhatsApp! File will be deleted in 60 seconds."
+        : "PDF generated and uploaded successfully! Add ?phone=966XXXXXXXXX to test WhatsApp. File will be deleted in 60 seconds.",
     })
     
   } catch (error) {
