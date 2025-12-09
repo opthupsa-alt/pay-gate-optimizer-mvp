@@ -199,9 +199,10 @@ export default function LeadsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          leadId: lead.id,  // مطلوب!
           wizardRunId: lead.wizardRunId,
-          phoneNumber: lead.phoneNormalized,
-          customerName: lead.name,
+          // لا نرسل pdfUrl - الـ API يولد PDF ويرفعه لـ Supabase
+          locale: "ar",
         }),
       })
 
