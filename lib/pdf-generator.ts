@@ -84,6 +84,42 @@ const translations = {
   }
 }
 
+// ==================== Translation Helper ====================
+
+/**
+ * Bilingual translations for reasons and caveats
+ */
+const reasonsCaveatsTranslations: Record<string, { ar: string; en: string }> = {
+  "يدعم مدى": { ar: "يدعم مدى", en: "Supports Mada" },
+  "Supports Mada": { ar: "يدعم مدى", en: "Supports Mada" },
+  "يدعم Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "Supports Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "يدعم قطاعك": { ar: "يدعم قطاعك", en: "Supports your sector" },
+  "Supports your sector": { ar: "يدعم قطاعك", en: "Supports your sector" },
+  "تفعيل سريع": { ar: "تفعيل سريع", en: "Fast activation" },
+  "Fast activation": { ar: "تفعيل سريع", en: "Fast activation" },
+  "دعم فني ممتاز": { ar: "دعم فني ممتاز", en: "Excellent support" },
+  "Excellent support": { ar: "دعم فني ممتاز", en: "Excellent support" },
+}
+
+/**
+ * Translate reason/caveat to target locale
+ */
+function translateReasonCaveat(text: string, locale: 'ar' | 'en'): string {
+  if (reasonsCaveatsTranslations[text]) {
+    return reasonsCaveatsTranslations[text][locale]
+  }
+  const setupFeeAr = text.match(/رسوم تسجيل:\s*([\d,]+)\s*﷼/)
+  if (setupFeeAr) return locale === "ar" ? text : `Setup fee: ${setupFeeAr[1]} SAR`
+  const setupFeeEn = text.match(/Setup fee:\s*([\d,]+)\s*(?:﷼|SAR)/)
+  if (setupFeeEn) return locale === "en" ? text : `رسوم تسجيل: ${setupFeeEn[1]} ﷼`
+  const monthlyFeeAr = text.match(/رسوم شهرية:\s*([\d,]+)\s*﷼/)
+  if (monthlyFeeAr) return locale === "ar" ? text : `Monthly fee: ${monthlyFeeAr[1]} SAR`
+  const monthlyFeeEn = text.match(/Monthly fee:\s*([\d,]+)\s*(?:﷼|SAR)/)
+  if (monthlyFeeEn) return locale === "en" ? text : `رسوم شهرية: ${monthlyFeeEn[1]} ﷼`
+  return text
+}
+
 // ==================== Helper Functions ====================
 
 /**
@@ -132,11 +168,11 @@ function generateReportHTML(options: GeneratePDFOptions): string {
     const monthlyFee = rec.provider?.monthly_fee ? formatCurrency(rec.provider.monthly_fee, t.currency) : '-'
     
     const reasonsHTML = rec.reasons && rec.reasons.length > 0 
-      ? `<div class="reasons"><strong>${t.reasons}:</strong><ul>${rec.reasons.map(r => `<li>${r}</li>`).join('')}</ul></div>`
+      ? `<div class="reasons"><strong>${t.reasons}:</strong><ul>${rec.reasons.map(r => `<li>${translateReasonCaveat(r, locale)}</li>`).join('')}</ul></div>`
       : ''
     
     const caveatsHTML = rec.caveats && rec.caveats.length > 0
-      ? `<div class="caveats"><strong>${t.caveats}:</strong><ul>${rec.caveats.map(c => `<li>${c}</li>`).join('')}</ul></div>`
+      ? `<div class="caveats"><strong>${t.caveats}:</strong><ul>${rec.caveats.map(c => `<li>${translateReasonCaveat(c, locale)}</li>`).join('')}</ul></div>`
       : ''
 
     return `

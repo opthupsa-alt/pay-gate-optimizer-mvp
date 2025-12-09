@@ -112,6 +112,49 @@ function reverseArabicText(text: string): string {
 }
 
 /**
+ * Bilingual translations for reasons and caveats
+ */
+const reasonsCaveatsTranslations: Record<string, { ar: string; en: string }> = {
+  "يدعم مدى": { ar: "يدعم مدى", en: "Supports Mada" },
+  "Supports Mada": { ar: "يدعم مدى", en: "Supports Mada" },
+  "يدعم Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "Supports Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "يدعم قطاعك": { ar: "يدعم قطاعك", en: "Supports your sector" },
+  "Supports your sector": { ar: "يدعم قطاعك", en: "Supports your sector" },
+  "تفعيل سريع": { ar: "تفعيل سريع", en: "Fast activation" },
+  "Fast activation": { ar: "تفعيل سريع", en: "Fast activation" },
+  "دعم فني ممتاز": { ar: "دعم فني ممتاز", en: "Excellent support" },
+  "Excellent support": { ar: "دعم فني ممتاز", en: "Excellent support" },
+}
+
+/**
+ * Translate reason/caveat to target locale
+ */
+function translateReasonCaveat(text: string, locale: 'ar' | 'en'): string {
+  if (reasonsCaveatsTranslations[text]) {
+    return reasonsCaveatsTranslations[text][locale]
+  }
+  // Handle fee patterns
+  const setupFeeAr = text.match(/رسوم تسجيل:\s*([\d,]+)\s*﷼/)
+  if (setupFeeAr) {
+    return locale === "ar" ? text : `Setup fee: ${setupFeeAr[1]} SAR`
+  }
+  const setupFeeEn = text.match(/Setup fee:\s*([\d,]+)\s*(?:﷼|SAR)/)
+  if (setupFeeEn) {
+    return locale === "en" ? text : `رسوم تسجيل: ${setupFeeEn[1]} ﷼`
+  }
+  const monthlyFeeAr = text.match(/رسوم شهرية:\s*([\d,]+)\s*﷼/)
+  if (monthlyFeeAr) {
+    return locale === "ar" ? text : `Monthly fee: ${monthlyFeeAr[1]} SAR`
+  }
+  const monthlyFeeEn = text.match(/Monthly fee:\s*([\d,]+)\s*(?:﷼|SAR)/)
+  if (monthlyFeeEn) {
+    return locale === "en" ? text : `رسوم شهرية: ${monthlyFeeEn[1]} ﷼`
+  }
+  return text
+}
+
+/**
  * Format number with Arabic/English formatting
  */
 function formatNumber(num: number, locale: 'ar' | 'en'): string {
@@ -407,11 +450,12 @@ export async function generateLocalPDF(options: LocalPDFOptions): Promise<LocalP
         yPos += 18
         
         for (const reason of rec.reasons.slice(0, 3)) {
+          const translatedReason = translateReasonCaveat(reason, locale)
           doc.fillColor(COLORS.dark)
           if (isArabic) {
-            doc.text(`${reverseArabicText(reason)} ✓`, 50, yPos, { align: 'right', width: 495 })
+            doc.text(`${reverseArabicText(translatedReason)} ✓`, 50, yPos, { align: 'right', width: 495 })
           } else {
-            doc.text(`✓ ${reason}`, 110, yPos, { width: 385 })
+            doc.text(`✓ ${translatedReason}`, 110, yPos, { width: 385 })
           }
           yPos += 16
         }

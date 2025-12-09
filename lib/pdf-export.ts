@@ -6,6 +6,58 @@ import type { Recommendation, WizardFormData, Provider } from "./types"
 // SVG for Saudi Riyal symbol - matches the one used in the website
 const SAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124.14 1256.39" class="sar-symbol" aria-label="SAR"><path fill="currentColor" d="M699.62,1113.02h0c-20.06,44.48-33.32,92.75-38.4,143.37l424.51-90.24c20.06-44.47,33.31-92.75,38.4-143.37l-424.51,90.24Z"/><path fill="currentColor" d="M1085.73,895.8c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.33v-135.2l292.27-62.11c20.06-44.47,33.32-92.75,38.4-143.37l-330.68,70.27V66.13c-50.67,28.45-95.67,66.32-132.25,110.99v403.35l-132.25,28.11V0c-50.67,28.44-95.67,66.32-132.25,110.99v525.69l-295.91,62.88c-20.06,44.47-33.33,92.75-38.42,143.37l334.33-71.05v170.26l-358.3,76.14c-20.06,44.47-33.32,92.75-38.4,143.37l375.04-79.7c30.53-6.35,56.77-24.4,73.83-49.24l68.78-101.97v-.02c7.14-10.55,11.3-23.27,11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z"/></svg>`
 
+// ==================== Translation Helper ====================
+
+/**
+ * Bilingual translations for reasons and caveats
+ * This ensures PDF content matches the requested locale
+ */
+const reasonsCaveatsTranslations: Record<string, { ar: string; en: string }> = {
+  // Reasons
+  "يدعم مدى": { ar: "يدعم مدى", en: "Supports Mada" },
+  "Supports Mada": { ar: "يدعم مدى", en: "Supports Mada" },
+  "يدعم Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "Supports Apple Pay": { ar: "يدعم Apple Pay", en: "Supports Apple Pay" },
+  "يدعم قطاعك": { ar: "يدعم قطاعك", en: "Supports your sector" },
+  "Supports your sector": { ar: "يدعم قطاعك", en: "Supports your sector" },
+  "تفعيل سريع": { ar: "تفعيل سريع", en: "Fast activation" },
+  "Fast activation": { ar: "تفعيل سريع", en: "Fast activation" },
+  "دعم فني ممتاز": { ar: "دعم فني ممتاز", en: "Excellent support" },
+  "Excellent support": { ar: "دعم فني ممتاز", en: "Excellent support" },
+}
+
+/**
+ * Translate a reason or caveat to the target locale
+ */
+function translateReasonCaveat(text: string, locale: "ar" | "en"): string {
+  // Check if it's a known phrase
+  if (reasonsCaveatsTranslations[text]) {
+    return reasonsCaveatsTranslations[text][locale]
+  }
+  
+  // Handle fee patterns: "رسوم تسجيل: X ﷼" or "Setup fee: X ﷼"
+  const setupFeeAr = text.match(/رسوم تسجيل:\s*([\d,]+)\s*﷼/)
+  if (setupFeeAr) {
+    return locale === "ar" ? text : `Setup fee: ${setupFeeAr[1]} SAR`
+  }
+  const setupFeeEn = text.match(/Setup fee:\s*([\d,]+)\s*(?:﷼|SAR)/)
+  if (setupFeeEn) {
+    return locale === "en" ? text : `رسوم تسجيل: ${setupFeeEn[1]} ﷼`
+  }
+  
+  const monthlyFeeAr = text.match(/رسوم شهرية:\s*([\d,]+)\s*﷼/)
+  if (monthlyFeeAr) {
+    return locale === "ar" ? text : `Monthly fee: ${monthlyFeeAr[1]} SAR`
+  }
+  const monthlyFeeEn = text.match(/Monthly fee:\s*([\d,]+)\s*(?:﷼|SAR)/)
+  if (monthlyFeeEn) {
+    return locale === "en" ? text : `رسوم شهرية: ${monthlyFeeEn[1]} ﷼`
+  }
+  
+  // Return original if no translation found
+  return text
+}
+
 interface PDFExportOptions {
   locale: "ar" | "en"
   wizardData?: WizardFormData
@@ -469,7 +521,7 @@ export function generatePDFContent(options: PDFExportOptions): string {
             <div class="reasons">
               <h4>${t.reasons}</h4>
               <ul>
-                ${rec.reasons.map(r => `<li>${r}</li>`).join('')}
+                ${rec.reasons.map(r => `<li>${translateReasonCaveat(r, locale)}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
@@ -477,7 +529,7 @@ export function generatePDFContent(options: PDFExportOptions): string {
             <div class="caveats">
               <h4>${t.caveats}</h4>
               <ul>
-                ${rec.caveats.map(c => `<li>${c}</li>`).join('')}
+                ${rec.caveats.map(c => `<li>${translateReasonCaveat(c, locale)}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
