@@ -164,18 +164,18 @@ export async function POST(request: NextRequest) {
         leadId = lead.id
 
         // Trigger WhatsApp send in background (fire and forget)
+        // لا نرسل pdfUrl - نترك whatsapp/send يولد PDF ويرفعه لـ Supabase
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
                         (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-        const pdfUrl = `${baseUrl}/api/results/pdf/${wizardRun.id}`
         
-        // Non-blocking WhatsApp send
+        // Non-blocking WhatsApp send - without pdfUrl so it generates fresh PDF
         fetch(`${baseUrl}/api/whatsapp/send`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             leadId: lead.id,
             wizardRunId: wizardRun.id,
-            pdfUrl,
+            // لا نرسل pdfUrl - الـ API سيولد PDF ويرفعه لـ Supabase Storage
             locale: data.locale || "ar",
           }),
         }).catch((err) => {
