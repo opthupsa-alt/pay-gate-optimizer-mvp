@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { sendResultsViaWhatsApp } from "@/lib/whatsapp"
 import { generateProfessionalPDF } from "@/lib/pdf-service"
-import { savePDF } from "@/lib/pdf-storage"
+import { uploadPDFToStorage, deletePDFFromStorage } from "@/lib/pdf-upload"
 import type { Recommendation, WizardFormData, PaymentMix, WizardNeeds, CostBreakdown } from "@/lib/types"
 
 interface SendRequest {
   leadId: string
   wizardRunId: string
-  pdfUrl?: string // Optional - will be generated if not provided
+  pdfUrl?: string // Optional - will be generated and uploaded to Supabase
   locale?: "ar" | "en"
 }
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const body: SendRequest = await request.json()
     const { leadId, wizardRunId, locale = "ar" } = body
     let { pdfUrl } = body
-    let pdfBase64: string | undefined
+    let pdfFilePath: string | undefined // Track file path for cleanup after send
 
     // Validate required fields
     if (!leadId || !wizardRunId) {
@@ -168,15 +168,25 @@ export async function POST(request: NextRequest) {
 
         console.log("PDF generated successfully. Method:", pdfResult.method, "Size:", pdfResult.pdfBase64?.length || 0)
 
-        // Store base64 for direct sending
-        pdfBase64 = pdfResult.pdfBase64
-
-        // Also save PDF to temp storage for URL fallback
+        // Upload PDF to Supabase Storage for public URL access
+        // وشيج يحتاج رابط عام مباشر ليسحب الملف
         const pdfBuffer = Buffer.from(pdfResult.pdfBase64, 'base64')
-        const savedPdf = await savePDF(pdfBuffer, wizardRunId)
-        pdfUrl = `${baseUrl}${savedPdf.url}`
+        const fileName = `paygate-report-${wizardRunId.slice(0, 8)}.pdf`
         
-        console.log("PDF saved. URL:", pdfUrl)
+        const uploadResult = await uploadPDFToStorage(pdfBuffer, fileName)
+        
+        if (!uploadResult.success || !uploadResult.publicUrl) {
+          console.error("Failed to upload PDF to storage:", uploadResult.error)
+          return NextResponse.json(
+            { error: "Failed to upload PDF", details: uploadResult.error },
+            { status: 500 }
+          )
+        }
+        
+        pdfUrl = uploadResult.publicUrl
+        pdfFilePath = uploadResult.filePath
+        
+        console.log("PDF uploaded to Supabase. Public URL:", pdfUrl)
       } catch (pdfError) {
         console.error("PDF generation error:", pdfError)
         return NextResponse.json(
@@ -188,58 +198,33 @@ export async function POST(request: NextRequest) {
 
     const platformUrl = `${baseUrl}/results/${wizardRunId}`
 
-    // Try sending PDF as base64 first (more reliable), fallback to URL
-    let textResult: { success: boolean; error?: string }
-    let docResult: { success: boolean; error?: string }
-    
-    if (pdfBase64) {
-      // Send via WhatsApp with base64 PDF
-      const result = await sendResultsViaWhatsApp(
-        lead.phoneNormalized,
-        pdfBase64,
-        lead.name,
-        platformUrl,
-        locale,
-        { isBase64: true, fileName: `paygate-report-${wizardRunId.slice(0, 8)}.pdf` }
-      )
-      textResult = result.textResult
-      docResult = result.docResult
-      
-      // If base64 failed for document, try URL fallback
-      if (!docResult.success && pdfUrl) {
-        console.log("Base64 document failed, trying URL fallback...")
-        const urlResult = await sendResultsViaWhatsApp(
-          lead.phoneNormalized,
-          pdfUrl,
-          lead.name,
-          platformUrl,
-          locale
-        )
-        docResult = urlResult.docResult
-      }
-    } else {
-      // Send via WhatsApp with URL
-      const result = await sendResultsViaWhatsApp(
-        lead.phoneNormalized,
-        pdfUrl,
-        lead.name,
-        platformUrl,
-        locale
-      )
-      textResult = result.textResult
-      docResult = result.docResult
-    }
+    // Send via WhatsApp with public PDF URL
+    // وشيج يسحب الملف من الرابط العام ويرسله للعميل
+    const { textResult, docResult } = await sendResultsViaWhatsApp(
+      lead.phoneNormalized,
+      pdfUrl,
+      lead.name,
+      platformUrl,
+      locale
+    )
 
     console.log("WhatsApp send results:", { 
       textResult: { success: textResult.success, error: textResult.error },
       docResult: { success: docResult.success, error: docResult.error },
-      pdfUrl,
-      usedBase64: !!pdfBase64
+      pdfUrl
     })
 
     // Determine overall success
     const success = textResult.success && docResult.success
     const partialSuccess = textResult.success || docResult.success
+
+    // Clean up PDF from storage after successful send
+    if (success && pdfFilePath) {
+      // Delete in background (don't await)
+      deletePDFFromStorage(pdfFilePath).catch(err => {
+        console.warn("Failed to cleanup PDF:", err)
+      })
+    }
 
     // Build error message if any
     let errorMessage: string | null = null

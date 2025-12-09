@@ -76,9 +76,7 @@ interface WhatsAppDocumentMessage {
   token: string
   from: string
   to: string
-  docUrl?: string
-  docBase64?: string
-  fileName?: string
+  docUrl: string
   caption: string
 }
 
@@ -156,13 +154,13 @@ export async function sendWhatsAppText(
 /**
  * Send a document (PDF) via WhatsApp
  * Uses settings from database first, then env vars as fallback
- * Supports both URL and base64 document sending
+ * 
+ * وشيج يستلم رابط URL عام للملف ويسحبه ويرسله للعميل
  */
 export async function sendWhatsAppDocument(
   to: string,
-  docUrlOrBase64: string,
-  caption: string,
-  options?: { isBase64?: boolean; fileName?: string }
+  docUrl: string,
+  caption: string
 ): Promise<WhatsAppApiResponse> {
   const token = process.env.WHATSAPP_QR_API_TOKEN
   
@@ -182,24 +180,19 @@ export async function sendWhatsAppDocument(
 
   const apiUrl = `${settings.apiBaseUrl}/api/qr/rest/send_message`
 
-  // Build payload - support both URL and base64
+  // Build payload with public URL
+  // وشيج يسحب الملف من الرابط ويرسله للعميل
   const payload: WhatsAppDocumentMessage = {
     messageType: "document",
     requestType: "POST",
     token,
     from: settings.fromNumber,
     to: normalizePhoneForApi(to),
+    docUrl,
     caption,
   }
 
-  if (options?.isBase64) {
-    payload.docBase64 = docUrlOrBase64
-    payload.fileName = options.fileName || "report.pdf"
-    console.log("Sending WhatsApp document as base64. FileName:", payload.fileName, "To:", normalizePhoneForApi(to))
-  } else {
-    payload.docUrl = docUrlOrBase64
-    console.log("Sending WhatsApp document. URL:", docUrlOrBase64, "To:", normalizePhoneForApi(to))
-  }
+  console.log("Sending WhatsApp document. URL:", docUrl, "To:", normalizePhoneForApi(to))
 
   try {
     const response = await fetch(apiUrl, {
@@ -232,15 +225,16 @@ export async function sendWhatsAppDocument(
 
 /**
  * Send results package (text + PDF) via WhatsApp
- * Supports both URL and base64 PDF sending
+ * 
+ * يرسل رسالة نصية أولاً ثم ملف PDF
+ * وشيج يسحب PDF من الرابط العام ويرسله للعميل
  */
 export async function sendResultsViaWhatsApp(
   to: string,
-  pdfUrlOrBase64: string,
+  pdfUrl: string,
   recipientName: string,
   platformUrl: string,
-  locale: "ar" | "en" = "ar",
-  options?: { isBase64?: boolean; fileName?: string }
+  locale: "ar" | "en" = "ar"
 ): Promise<{ textResult: WhatsAppApiResponse; docResult: WhatsAppApiResponse }> {
   // Generate messages
   const textMessage = generateWelcomeMessage(recipientName, platformUrl, locale)
@@ -252,8 +246,8 @@ export async function sendResultsViaWhatsApp(
   // Wait a moment before sending document
   await new Promise(resolve => setTimeout(resolve, 1000))
   
-  // Send PDF document
-  const docResult = await sendWhatsAppDocument(to, pdfUrlOrBase64, pdfCaption, options)
+  // Send PDF document via public URL
+  const docResult = await sendWhatsAppDocument(to, pdfUrl, pdfCaption)
   
   return { textResult, docResult }
 }
@@ -272,7 +266,7 @@ function normalizePhoneForApi(phone: string): string {
  */
 function generateWelcomeMessage(
   name: string, 
-  platformUrl: string, 
+  platformUrl: string,
   locale: "ar" | "en"
 ): string {
   if (locale === "ar") {
