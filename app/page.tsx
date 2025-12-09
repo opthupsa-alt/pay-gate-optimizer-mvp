@@ -178,9 +178,20 @@ export default async function HomePage() {
                 </div>
                 <h3 className="mb-2 text-lg font-semibold">{step.title}</h3>
                 <p className="text-sm text-muted-foreground">{step.description}</p>
+                {/* Arrow between steps - appears AFTER current step toward next step */}
                 {index < 2 && (
-                  <div className={`absolute top-8 hidden -translate-y-1/2 md:block ${isRTL ? 'start-0 -translate-x-1/2' : 'end-0 translate-x-1/2'}`}>
-                    <Arrow className="mx-auto h-6 w-6 text-muted-foreground/50" />
+                  <div 
+                    className="absolute top-8 hidden -translate-y-1/2 md:block"
+                    style={{
+                      // In RTL: arrow on LEFT side (toward next step which is on the left)
+                      // In LTR: arrow on RIGHT side (toward next step which is on the right)
+                      ...(isRTL 
+                        ? { left: 0, transform: 'translate(-50%, -50%)' }
+                        : { right: 0, transform: 'translate(50%, -50%)' }
+                      )
+                    }}
+                  >
+                    <Arrow className="h-6 w-6 text-muted-foreground/50" />
                   </div>
                 )}
               </div>
