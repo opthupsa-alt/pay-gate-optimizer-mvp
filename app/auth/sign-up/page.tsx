@@ -9,9 +9,57 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { useLocale } from "@/hooks/use-locale"
+
+const translations = {
+  ar: {
+    title: "إنشاء حساب جديد",
+    subtitle: "أنشئ حسابك للوصول إلى جميع المميزات",
+    name: "الاسم",
+    namePlaceholder: "أدخل اسمك",
+    email: "البريد الإلكتروني",
+    password: "كلمة المرور",
+    passwordPlaceholder: "8 أحرف على الأقل",
+    confirmPassword: "تأكيد كلمة المرور",
+    confirmPlaceholder: "أعد إدخال كلمة المرور",
+    submit: "إنشاء الحساب",
+    submitting: "جاري إنشاء الحساب...",
+    hasAccount: "لديك حساب بالفعل؟",
+    login: "تسجيل الدخول",
+    errorPasswordMismatch: "كلمتا المرور غير متطابقتان",
+    errorPasswordLength: "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
+    errorCreateFailed: "فشل في إنشاء الحساب",
+    errorGeneral: "حدث خطأ. يرجى المحاولة مرة أخرى",
+    successTitle: "تم إنشاء الحساب بنجاح!",
+    successRedirect: "جاري تحويلك لصفحة تسجيل الدخول...",
+  },
+  en: {
+    title: "Create New Account",
+    subtitle: "Create your account to access all features",
+    name: "Name",
+    namePlaceholder: "Enter your name",
+    email: "Email",
+    password: "Password",
+    passwordPlaceholder: "At least 8 characters",
+    confirmPassword: "Confirm Password",
+    confirmPlaceholder: "Re-enter password",
+    submit: "Create Account",
+    submitting: "Creating account...",
+    hasAccount: "Already have an account?",
+    login: "Sign In",
+    errorPasswordMismatch: "Passwords do not match",
+    errorPasswordLength: "Password must be at least 8 characters",
+    errorCreateFailed: "Failed to create account",
+    errorGeneral: "An error occurred. Please try again",
+    successTitle: "Account created successfully!",
+    successRedirect: "Redirecting to login page...",
+  },
+}
 
 export default function SignUpPage() {
   const router = useRouter()
+  const locale = useLocale()
+  const t = translations[locale]
   
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -27,13 +75,13 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     if (password !== confirmPassword) {
-      setError("كلمتا المرور غير متطابقتان")
+      setError(t.errorPasswordMismatch)
       setIsLoading(false)
       return
     }
 
     if (password.length < 8) {
-      setError("كلمة المرور يجب أن تكون 8 أحرف على الأقل")
+      setError(t.errorPasswordLength)
       setIsLoading(false)
       return
     }
@@ -48,7 +96,7 @@ export default function SignUpPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "فشل في إنشاء الحساب")
+        throw new Error(data.error || t.errorCreateFailed)
       }
 
       setSuccess(true)
@@ -56,7 +104,7 @@ export default function SignUpPage() {
         router.push("/auth/login")
       }, 2000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "حدث خطأ. يرجى المحاولة مرة أخرى")
+      setError(err instanceof Error ? err.message : t.errorGeneral)
     } finally {
       setIsLoading(false)
     }
@@ -68,9 +116,9 @@ export default function SignUpPage() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500" />
-            <h2 className="mt-4 text-2xl font-bold">تم إنشاء الحساب بنجاح!</h2>
+            <h2 className="mt-4 text-2xl font-bold">{t.successTitle}</h2>
             <p className="mt-2 text-muted-foreground">
-              جاري تحويلك لصفحة تسجيل الدخول...
+              {t.successRedirect}
             </p>
           </CardContent>
         </Card>
@@ -82,9 +130,9 @@ export default function SignUpPage() {
     <div className="container flex min-h-[calc(100vh-4rem)] items-center justify-center py-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">إنشاء حساب جديد</CardTitle>
+          <CardTitle className="text-2xl">{t.title}</CardTitle>
           <CardDescription>
-            أنشئ حسابك للوصول إلى جميع المميزات
+            {t.subtitle}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -96,18 +144,18 @@ export default function SignUpPage() {
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="name">الاسم</Label>
+              <Label htmlFor="name">{t.name}</Label>
               <Input
                 id="name"
                 type="text"
-                placeholder="أدخل اسمك"
+                placeholder={t.namePlaceholder}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Label htmlFor="email">{t.email}</Label>
               <Input
                 id="email"
                 type="email"
@@ -119,11 +167,11 @@ export default function SignUpPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
+              <Label htmlFor="password">{t.password}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="8 أحرف على الأقل"
+                placeholder={t.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -131,11 +179,11 @@ export default function SignUpPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+              <Label htmlFor="confirmPassword">{t.confirmPassword}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="أعد إدخال كلمة المرور"
+                placeholder={t.confirmPlaceholder}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -148,16 +196,16 @@ export default function SignUpPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                  جاري إنشاء الحساب...
+                  {t.submitting}
                 </>
               ) : (
-                "إنشاء الحساب"
+                t.submit
               )}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
-              لديك حساب بالفعل؟{" "}
+              {t.hasAccount}{" "}
               <Link href="/auth/login" className="text-primary hover:underline">
-                تسجيل الدخول
+                {t.login}
               </Link>
             </p>
           </CardFooter>

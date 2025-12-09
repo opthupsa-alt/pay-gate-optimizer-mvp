@@ -15,11 +15,12 @@ import {
   Loader2
 } from "lucide-react"
 import { toast } from "sonner"
+import { useLocale } from "@/hooks/use-locale"
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const [locale] = useState<"ar" | "en">("ar")
+  const locale = useLocale()
   const isRTL = locale === "ar"
 
   const t = {

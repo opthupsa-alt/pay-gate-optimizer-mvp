@@ -21,6 +21,7 @@ import {
   Filter,
   X,
 } from "lucide-react"
+import { useLocale } from "@/hooks/use-locale"
 import type { Provider, ProviderReview, ProviderIntegration, ProviderFee } from "@/lib/types"
 
 interface ProviderWithRelations extends Provider {
@@ -55,7 +56,7 @@ export default function ProvidersPage() {
   const [category, setCategory] = useState(searchParams.get("category") || "all")
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
-  const [locale] = useState<"ar" | "en">("ar")
+  const locale = useLocale()
 
   useEffect(() => {
     fetchProviders()
