@@ -138,9 +138,14 @@ export async function generateProfessionalPDF(options: PDFGenerationOptions): Pr
     : htmlContent
   
   // Use configured provider
+  console.log('PDF generation settings:', { provider: settings.provider, hasPdfshiftKey: !!settings.pdfshiftApiKey, hasHtml2pdfKey: !!settings.html2pdfApiKey })
+  
   if (settings.provider === 'pdfshift' && settings.pdfshiftApiKey) {
     const result = await generateWithPDFShift(finalHtml, locale, settings.pdfshiftApiKey)
-    if (result.success) return result
+    if (result.success) {
+      console.log('PDFShift succeeded!')
+      return result
+    }
     console.warn('PDFShift failed, trying fallback:', result.error)
   }
   
@@ -161,7 +166,8 @@ export async function generateProfessionalPDF(options: PDFGenerationOptions): Pr
     if (result.success) return result
   }
   
-  // Fallback: Return HTML that can be converted client-side
+  // Fallback: This is HTML, not actual PDF - will likely fail with WhatsApp
+  console.warn('All PDF APIs failed! Using HTML fallback - WhatsApp delivery may fail')
   return {
     success: true,
     pdfBase64: Buffer.from(finalHtml).toString('base64'),
@@ -173,6 +179,8 @@ export async function generateProfessionalPDF(options: PDFGenerationOptions): Pr
 
 async function generateWithPDFShift(html: string, locale: 'ar' | 'en', apiKey: string): Promise<PDFResult> {
   try {
+    console.log('Calling PDFShift API...')
+    
     const response = await fetch(PDFSHIFT_API_URL, {
       method: 'POST',
       headers: {
@@ -199,12 +207,17 @@ async function generateWithPDFShift(html: string, locale: 'ar' | 'en', apiKey: s
       }),
     })
     
+    console.log('PDFShift response status:', response.status)
+    
     if (!response.ok) {
       const error = await response.text()
+      console.error('PDFShift error response:', error)
       return { success: false, error: `PDFShift error: ${error}` }
     }
     
     const pdfBuffer = Buffer.from(await response.arrayBuffer())
+    console.log('PDFShift PDF generated, size:', pdfBuffer.length, 'bytes')
+    
     return {
       success: true,
       pdfBuffer,
@@ -212,6 +225,7 @@ async function generateWithPDFShift(html: string, locale: 'ar' | 'en', apiKey: s
       method: 'pdfshift',
     }
   } catch (error) {
+    console.error('PDFShift exception:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'PDFShift request failed',
