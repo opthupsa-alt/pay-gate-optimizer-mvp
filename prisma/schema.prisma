@@ -810,3 +810,47 @@ enum SettingType {
   image
   color
 }
+
+// ==================== Footer Management (إدارة الفوتر) ====================
+
+/// قوائم الفوتر - يمكن إنشاء عدة قوائم (روابط سريعة، قانونية، الخ)
+/// Footer menus - can create multiple menus (Quick Links, Legal, etc.)
+model FooterMenu {
+  id          String       @id @default(cuid())
+  slug        String       @unique /// معرف القائمة الفريد (quick-links, legal, etc)
+  titleAr     String       @map("title_ar") /// عنوان القائمة بالعربية
+  titleEn     String       @map("title_en") /// عنوان القائمة بالإنجليزية
+  sortOrder   Int          @default(0) @map("sort_order") /// ترتيب العرض
+  isActive    Boolean      @default(true) @map("is_active") /// هل القائمة مفعلة
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  links FooterLink[]
+
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("footer_menus")
+}
+
+/// روابط الفوتر - الروابط داخل كل قائمة
+/// Footer links - links within each menu
+model FooterLink {
+  id          String     @id @default(cuid())
+  menuId      String     @map("menu_id") /// معرف القائمة
+  labelAr     String     @map("label_ar") /// عنوان الرابط بالعربية
+  labelEn     String     @map("label_en") /// عنوان الرابط بالإنجليزية
+  href        String     /// رابط الصفحة (مسار داخلي أو URL خارجي)
+  isExternal  Boolean    @default(false) @map("is_external") /// هل الرابط خارجي
+  openInNewTab Boolean   @default(false) @map("open_in_new_tab") /// فتح في تبويب جديد
+  sortOrder   Int        @default(0) @map("sort_order") /// ترتيب العرض
+  isActive    Boolean    @default(true) @map("is_active") /// هل الرابط مفعل
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  menu FooterMenu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@index([menuId])
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("footer_links")
+}

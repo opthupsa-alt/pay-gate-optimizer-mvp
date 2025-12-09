@@ -283,6 +283,74 @@ async function main() {
   }
   console.log('✅ Providers created with pricing rules')
 
+  // Create footer menus
+  const footerMenus = [
+    {
+      slug: 'quick-links',
+      titleAr: 'روابط سريعة',
+      titleEn: 'Quick Links',
+      sortOrder: 1,
+      links: [
+        { labelAr: 'الرئيسية', labelEn: 'Home', href: '/', sortOrder: 1 },
+        { labelAr: 'مقارنة البوابات', labelEn: 'Compare Gateways', href: '/wizard', sortOrder: 2 },
+        { labelAr: 'البوابات', labelEn: 'Providers', href: '/providers', sortOrder: 3 },
+        { labelAr: 'عن المنصة', labelEn: 'About', href: '/about', sortOrder: 4 },
+        { labelAr: 'تواصل معنا', labelEn: 'Contact Us', href: '/contact', sortOrder: 5 },
+      ],
+    },
+    {
+      slug: 'legal',
+      titleAr: 'قانونية',
+      titleEn: 'Legal',
+      sortOrder: 2,
+      links: [
+        { labelAr: 'سياسة الخصوصية', labelEn: 'Privacy Policy', href: '/privacy', sortOrder: 1 },
+        { labelAr: 'شروط الاستخدام', labelEn: 'Terms of Use', href: '/terms', sortOrder: 2 },
+      ],
+    },
+    {
+      slug: 'resources',
+      titleAr: 'موارد',
+      titleEn: 'Resources',
+      sortOrder: 3,
+      links: [
+        // Add links here when needed
+      ],
+    },
+  ]
+
+  for (const menu of footerMenus) {
+    const existingMenu = await prisma.footerMenu.findUnique({
+      where: { slug: menu.slug },
+    })
+
+    if (!existingMenu) {
+      const createdMenu = await prisma.footerMenu.create({
+        data: {
+          slug: menu.slug,
+          titleAr: menu.titleAr,
+          titleEn: menu.titleEn,
+          sortOrder: menu.sortOrder,
+          isActive: true,
+        },
+      })
+
+      for (const link of menu.links) {
+        await prisma.footerLink.create({
+          data: {
+            menuId: createdMenu.id,
+            labelAr: link.labelAr,
+            labelEn: link.labelEn,
+            href: link.href,
+            sortOrder: link.sortOrder,
+            isActive: true,
+          },
+        })
+      }
+    }
+  }
+  console.log('✅ Footer menus created')
+
   console.log('🎉 Database seeded successfully!')
   console.log('')
   console.log('📋 Admin credentials:')
