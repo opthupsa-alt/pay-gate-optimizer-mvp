@@ -241,17 +241,18 @@ export default function ProvidersClient() {
             const rating = getAverageRating(provider.provider_reviews)
             const minFee = getMinFee(provider.provider_fees)
             const logoUrl = provider.logo_url || provider.logo_path || "/providers/default-logo.svg"
+            const categoryLabel = categories.find(c => c.value === provider.category)?.[locale === "ar" ? "label_ar" : "label_en"] || provider.category
 
             return (
               <Card 
                 key={provider.id} 
-                className={`hover:shadow-lg transition-shadow relative ${
+                className={`group hover:shadow-xl transition-all duration-300 overflow-hidden relative ${
                   provider.is_featured ? "ring-2 ring-amber-500/50" : ""
                 }`}
               >
                 {/* Featured Badge */}
                 {provider.is_featured && (
-                  <div className="absolute -top-2 -end-2 z-10">
+                  <div className="absolute top-3 end-3 z-20">
                     <Badge className="bg-amber-500 text-white shadow-lg">
                       <Star className="h-3 w-3 me-1 fill-white" />
                       {locale === "ar" ? "مميز" : "Featured"}
@@ -259,74 +260,66 @@ export default function ProvidersClient() {
                   </div>
                 )}
                 
-                <CardHeader>
-                  <div className="flex items-start gap-4">
-                    {/* Logo */}
-                    <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-muted border shrink-0 flex items-center justify-center">
+                {/* Logo Banner - Full Width */}
+                <div className="relative h-32 bg-gradient-to-br from-muted/50 to-muted border-b overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-center p-6">
+                    <div className="relative w-full h-full max-w-[200px]">
                       <Image
                         src={logoUrl}
                         alt={locale === "ar" ? provider.name_ar : provider.name_en}
                         fill
-                        className="object-contain p-2"
+                        className="object-contain transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <CardTitle className="text-lg truncate">
-                            {locale === "ar" ? provider.name_ar : provider.name_en}
-                          </CardTitle>
-                          <CardDescription className="mt-1">
-                            {categories.find(c => c.value === provider.category)?.[locale === "ar" ? "label_ar" : "label_en"] || provider.category}
-                          </CardDescription>
-                        </div>
-                        {rating && (
-                          <Badge variant="secondary" className="flex items-center gap-1 shrink-0">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            {rating}
-                          </Badge>
-                        )}
-                      </div>
+                  </div>
+                  {/* Decorative gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent" />
+                </div>
+
+                {/* Content */}
+                <CardHeader className="pb-3">
+                  <div className="text-center">
+                    <CardTitle className="text-xl font-bold">
+                      {locale === "ar" ? provider.name_ar : provider.name_en}
+                    </CardTitle>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {categoryLabel}
+                      </Badge>
+                      {rating && (
+                        <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          {rating}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Description */}
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {locale === "ar" 
-                      ? provider.description_ar || provider.notes_ar 
-                      : provider.description_en || provider.notes_en}
-                  </p>
 
+                <CardContent className="space-y-4 pt-0">
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    {minFee && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <CreditCard className="h-4 w-4" />
-                        <span>
-                          {locale === "ar" ? `من ${minFee}` : `From ${minFee}`}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
                       <Clock className="h-4 w-4" />
                       <span>
                         {provider.activation_time_days_min}-{provider.activation_time_days_max} 
                         {locale === "ar" ? " يوم" : " days"}
                       </span>
                     </div>
-                    {provider.multi_currency_supported && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Globe className="h-4 w-4" />
-                        <span>{locale === "ar" ? "متعدد العملات" : "Multi-currency"}</span>
-                      </div>
+                    {minFee && (
+                      <>
+                        <span className="text-muted-foreground/50">•</span>
+                        <div className="flex items-center gap-1.5">
+                          <CreditCard className="h-4 w-4" />
+                          <span>{locale === "ar" ? `من ${minFee}` : `From ${minFee}`}</span>
+                        </div>
+                      </>
                     )}
                   </div>
 
                   {/* Integrations */}
                   {provider.provider_integrations && provider.provider_integrations.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap justify-center gap-1">
                       {provider.provider_integrations.slice(0, 4).map((int) => (
                         <Badge key={int.id} variant="outline" className="text-xs">
                           {int.platform}
@@ -342,12 +335,12 @@ export default function ProvidersClient() {
 
                   {/* Action */}
                   <Link href={`/providers/${provider.slug}`}>
-                    <Button variant="outline" className="w-full group">
+                    <Button variant="default" className="w-full group/btn">
                       {locale === "ar" ? "عرض التفاصيل" : "View Details"}
                       {locale === "ar" ? (
-                        <ArrowLeft className="h-4 w-4 ms-2 group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft className="h-4 w-4 ms-2 group-hover/btn:-translate-x-1 transition-transform" />
                       ) : (
-                        <ArrowRight className="h-4 w-4 ms-2 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="h-4 w-4 ms-2 group-hover/btn:translate-x-1 transition-transform" />
                       )}
                     </Button>
                   </Link>
